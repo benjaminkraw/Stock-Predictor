@@ -1,0 +1,34 @@
+# Core scientific stack
+numpy>=1.24, <2.0
+pandas>=2.2, <2.3
+pyarrow>=14, <18
+
+# Machine learning
+scipy>=1.11, <1.14
+scikit-learn>=1.3, <1.6
+joblib>=1.3, <2.0
+xgboost>=2.0, <2.1 
+torch>=2.2, <2.7
+
+# Interactive Broker API
+ib-insync>=0.9.86, <1.0
+
+# Configuration and utilities
+pyyaml==6.0.3, <7.0
+pydantic>=2.6, <2.9
+typing-extensions>=4.7, <5.0
+python-dateutil>=2.8, <3.0
+tzdata>=2023.3; platform_system == "Windows"
+python-dotenv>=1.0, <2.0        # if you plan to keep .env support
+matplotlib>=3.8, <3.9
+tqdm>=4.66, <5.0
+
+# Optional (future-proofing)    
+matplotlib>=3.8, <3.9           # plotting / diagnostics
+tqdm>=4.66, <5.0                # progress bars
+
+#tkinter                         # GUI
+customtkinter                   # GUI 2.0
+tkcalendar                      # GUI Calendar Widget
+
+subprocess                      # Allows for running Powershell commands from GUI
