@@ -32,3 +32,6 @@ customtkinter                   # GUI 2.0
 tkcalendar                      # GUI Calendar Widget
 
 subprocess                      # Allows for running Powershell commands from GUI
+screeninfo                      # Allows for querying about connected monitors
+
+os                              # Allows for navigating through files local to PC
