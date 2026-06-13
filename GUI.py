@@ -126,7 +126,7 @@ Credits_label.place(x=45, y=40)
 #------------------------------------------------------------------------------
 # Generate Time Frame
 Time_frame = ctk.CTkFrame(root)
-Time_frame.place(x=500, y=0)
+Time_frame.place(x=600, y=0)
 Time_frame.configure(width = 380, height = 70)
 
 # Current Date
@@ -159,10 +159,10 @@ def Clock():
 
     CurrentTime_text = Hour + ":" + Minute + ":" + Second + " " + TimeZone + " " + TimeZoneOffset
 
-    Time_frame.Clock_label.configure(text=CurrentTime_text)
+    Clock_label.configure(text=CurrentTime_text)
+    Clock_label.after(1000, Clock)
     
-
-    Time_frame.CurrentDate.Date_label.configure(text=DayOfWeek + " " + Month + " " + Day + ", " + Year)
+    Date_label.configure(text=DayOfWeek + " " + Month + " " + Day + ", " + Year)
 
 #------------------------------------------------------------------------------
 # Generate Project Setup Frame
@@ -275,8 +275,36 @@ MonthNow = int(time.strftime("%m"))
 DayNow = int(time.strftime("%d"))
 
 calendar = Calendar(master=Ingest_frame, selectmode = 'day', year = YearNow, month = MonthNow, day = DayNow)
+calendar.configure(font=("Calibri", 20))
 calendar.place(x=25, y=95)
 
+# Given a Number return Month String
+def ConvertNumtoMonth(MonthNumber):
+    if MonthNumber == 1:
+        return "January"
+    elif MonthNumber == 2:
+        return "February"
+    elif MonthNumber == 3:
+        return "March"
+    elif MonthNumber == 4:
+        return "April"
+    elif MonthNumber == 5:
+        return "May"
+    elif MonthNumber == 6:
+        return "June"
+    elif MonthNumber == 7:
+        return "July"
+    elif MonthNumber == 8:
+        return "August"
+    elif MonthNumber == 9:
+        return "September"
+    elif MonthNumber == 10:
+        return "October"
+    elif MonthNumber == 11:
+        return "November"
+    elif MonthNumber == 12:
+        return "December"
+      
 
 
 
@@ -302,8 +330,8 @@ def TrainingBegin():
     TrainingBeginDate[0][0] = TrainingBeginDate_year
     TrainingBeginDate[0][1] = TrainingBeginDate_month
     TrainingBeginDate[0][2] = TrainingBeginDate_day
-    
-    TrainingBeginDate_text = "Training Begin Date: " + TrainingBeginDate[0][0] + "/" + TrainingBeginDate[0][1] + "/" + TrainingBeginDate[0][2]
+
+    TrainingBeginDate_text = "Training Begin Date: " + ConvertNumtoMonth(int(TrainingBeginDate[0][1])) + " " + TrainingBeginDate[0][2] + ", " + TrainingBeginDate[0][0]
     TrainingBeginDate_label.configure(text = str(TrainingBeginDate_text))
 
 def TrainingEnd():
@@ -321,7 +349,7 @@ def TrainingEnd():
     TrainingEndDate[0][1] = TrainingEndDate_month
     TrainingEndDate[0][2] = TrainingEndDate_day
     
-    TrainingEndDate_text = "Training End Date: " + TrainingEndDate[0][0] + "/" + TrainingEndDate[0][1] + "/" + TrainingEndDate[0][2]
+    TrainingEndDate_text = "Training End Date:    " + ConvertNumtoMonth(int(TrainingEndDate[0][1])) + " " + TrainingEndDate[0][2] + ", " + TrainingEndDate[0][0]
     TrainingEndDate_label.configure(text = str(TrainingEndDate_text))
 
 def TrainingDataAck():
@@ -396,7 +424,7 @@ def UpdateFileListbox(Listbox, Directory):
 
 # Training Files Listbox
 Training_listbox = tk.Listbox(Ingest_frame, width = 40, height = 5)
-Training_listbox.place(x=350, y=320)
+Training_listbox.place(x=520, y=320)
 Training_listbox.configure(font=("Calibri", 18))
 
 # Update Listbox with files from Directory
@@ -405,28 +433,28 @@ UpdateFileListbox(Training_listbox, TrainingDirectory)
 
 # Training Begin Date Button
 TrainingBeginDate_button = ctk.CTkButton(master=Ingest_frame, text="Set Train Begin Date", command=TrainingBegin)
-TrainingBeginDate_button.place(x=185, y=55)
+TrainingBeginDate_button.place(x=285, y=55)
 TrainingBeginDate_button.configure(width=150, height=25)
 
 # Training End Date Button
 TrainingEndDate_button = ctk.CTkButton(master=Ingest_frame, text="Set Train End Date", command=TrainingEnd)
-TrainingEndDate_button.place(x=345, y=55)
+TrainingEndDate_button.place(x=445, y=55)
 TrainingEndDate_button.configure(width=150, height=25)
 
 # Training Data Button
 TrainingData_button = ctk.CTkButton(master=Ingest_frame, text="Ingest Train Data", command=TrainingDataAck)
-TrainingData_button.place(x=260, y=145)
+TrainingData_button.place(x=360, y=145)
 TrainingData_button.configure(width=150, height=25)
 
 
 # Training Begin Date Text
 TrainingBeginDate_label = ctk.CTkLabel(master=Ingest_frame, text="")
-TrainingBeginDate_label.place(x=250, y=90)
+TrainingBeginDate_label.place(x=350, y=90)
 TrainingBeginDate_label.configure(width=150, height=25)
 
 # Training End Date Text
 TrainingEndDate_label = ctk.CTkLabel(master=Ingest_frame, text="")
-TrainingEndDate_label.place(x=250, y=110)
+TrainingEndDate_label.place(x=350, y=110)
 
 #-------------------
 # Backtest Ingest
@@ -444,8 +472,8 @@ def BacktestBegin():
     BacktestBeginDate[0][0] = BacktestBeginDate_year
     BacktestBeginDate[0][1] = BacktestBeginDate_month
     BacktestBeginDate[0][2] = BacktestBeginDate_day
-    
-    BacktestBeginDate_text = "Backtest Begin Date: " + BacktestBeginDate[0][0] + "/" + BacktestBeginDate[0][1] + "/" + BacktestBeginDate[0][2]
+   
+    BacktestBeginDate_text = "Backtest Begin Date: " + ConvertNumtoMonth(int(BacktestBeginDate[0][1])) + " " + BacktestBeginDate[0][2] + ", " + BacktestBeginDate[0][0]
     BacktestBeginDate_label.configure(text = str(BacktestBeginDate_text))
 
 def BacktestEnd():
@@ -462,8 +490,8 @@ def BacktestEnd():
     BacktestEndDate[0][0] = BacktestEndDate_year
     BacktestEndDate[0][1] = BacktestEndDate_month
     BacktestEndDate[0][2] = BacktestEndDate_day
-    
-    BacktestEndDate_text = "Backtest End Date: " + BacktestEndDate[0][0] + "/" + BacktestEndDate[0][1] + "/" + BacktestEndDate[0][2]
+   
+    BacktestEndDate_text = "Backtest End Date:    " + ConvertNumtoMonth(int(BacktestEndDate[0][1])) + " " + BacktestEndDate[0][2] + ", " + BacktestEndDate[0][0]
     BacktestEndDate_label.configure(text = str(BacktestEndDate_text))
 
 def BacktestDataAck():
@@ -528,7 +556,7 @@ def BacktestData():
 
 # Backtest Files Listbox
 Backtest_listbox = tk.Listbox(Ingest_frame, width = 40, height = 5)
-Backtest_listbox.place(x=1050, y=320)
+Backtest_listbox.place(x=1220, y=320)
 Backtest_listbox.configure(font=("Calibri", 18))
 
 # Update Listbox with files from Directory
@@ -538,28 +566,28 @@ UpdateFileListbox(Backtest_listbox, BacktestDirectory)
 
 # Backtest Begin Date Button
 BacktestBeginDate_button = ctk.CTkButton(master=Ingest_frame, text="Set Backtest Begin Date", command=BacktestBegin)
-BacktestBeginDate_button.place(x=585, y=55)
+BacktestBeginDate_button.place(x=685, y=55)
 BacktestBeginDate_button.configure(width=150, height=25)
 
 # Backtest End Date Button
 BacktestEndDate_button = ctk.CTkButton(master=Ingest_frame, text="Set Backtest End Date", command=BacktestEnd)
-BacktestEndDate_button.place(x=745, y=55)
+BacktestEndDate_button.place(x=845, y=55)
 BacktestEndDate_button.configure(width=150, height=25)
 
 # Backtest Data Button
 BacktestData_button = ctk.CTkButton(master=Ingest_frame, text="Ingest Backtest Data", command=BacktestDataAck)
-BacktestData_button.place(x=660, y=145)
+BacktestData_button.place(x=760, y=145)
 BacktestData_button.configure(width=150, height=25)
 
 
 # Backtest Begin Date Text
 BacktestBeginDate_label = ctk.CTkLabel(master=Ingest_frame, text="")
-BacktestBeginDate_label.place(x=650, y=90)
+BacktestBeginDate_label.place(x=750, y=90)
 BacktestBeginDate_label.configure(width=150, height=25)
 
 # Backtest End Date Text
 BacktestEndDate_label = ctk.CTkLabel(master=Ingest_frame, text="")
-BacktestEndDate_label.place(x=650, y=110)
+BacktestEndDate_label.place(x=750, y=110)
 
 
 
@@ -573,27 +601,11 @@ BacktestEnd()
 
 
 #------------------------------------------------------------------------------
-# Veritcal Scroll Bar and mouse wheel control
-# canvas = ctk.Canvas(root, borderwidth=0, background='#7393B3')
-# frame = ctk.Frame(canvas, background="#ffffff")
-# vsb = ctk.Scrollbar(root, orient="vertical", command=canvas.yview)
-# canvas.configure(yscrollcommand=vsb.set)
-
-# Bind mouse wheel to the canvas
-# canvas.bind_all("<MouseWheel>", on_mouse_wheel)
-
-# Ensure that the mouse wheel event is updated whenever the window size changes
-# frame.update_idletasks()
-
-# canvas.config(scrollregion=canvas.bbox("all"))
-
-
-#------------------------------------------------------------------------------
 # Initiate Clock
-# Clock()
+Clock()
 
 #------------------------------------------------------------------------------
 # Run Window
-# root.after(3000, lambda: root.destroy())
+root.after(3000, lambda: root.destroy())
 root.mainloop()  
 
