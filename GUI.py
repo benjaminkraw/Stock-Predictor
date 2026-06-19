@@ -590,6 +590,215 @@ BacktestEndDate_label = ctk.CTkLabel(master=Ingest_frame, text="")
 BacktestEndDate_label.place(x=750, y=110)
 
 
+#------------------------------------------------------------------------------
+# Generate Features Frame
+Features_frame = ctk.CTkFrame(root)
+Features_frame.place(x=1010, y=310)
+Features_frame.configure(width = 370, height = 300)
+
+# Features Title
+FeaturesTitle_label = ctk.CTkLabel(master=Features_frame, text="Features", font=("Calibri", 35))
+FeaturesTitle_label.place(x=10, y=5)
+
+# Set Strategy ID text
+SetStratgetyIDText_label = ctk.CTkLabel(master=Features_frame, text="Set Strategy ID:")
+SetStratgetyIDText_label.place(x=50, y=50)
+
+# Strategy ID Entry
+StrategyIDEntry = ctk.CTkEntry(Features_frame, placeholder_text="1")
+StrategyIDEntry.place(x=150, y=50)
+
+StrategyIDFeaturesDirectory = ProjectDirectory + str("/20-data/400-models/candidate/strat_00001/10b/20-features/MNQ/1m/50-backtest")
+
+# StrategyID Files Listbox
+StrategyIDFeatures_listbox = tk.Listbox(Features_frame, width = 40, height = 5)
+StrategyIDFeatures_listbox.place(x=100, y=220)
+StrategyIDFeatures_listbox.configure(font=("Calibri", 18))
+
+# Update Listbox with files from Directory
+UpdateFileListbox(StrategyIDFeatures_listbox, StrategyIDFeaturesDirectory)
+
+def FeaturesDataAck():
+    root.popup = ctk.CTkToplevel()
+    root.popup.wm_title("Apply Features to Backtest Data")
+
+    # Popup Dimensions
+    FeaturesPopupWidth = 400
+    FeaturesPopupHeight = 100
+
+    # Screen Dimensions
+    ScreenWidth = root.winfo_screenwidth()
+    ScreenHeight = root.winfo_screenheight()
+
+    # Calculate x and y coordinates for Popup
+    FeaturesPopup_x = (ScreenWidth/2) - (FeaturesPopupWidth/2) + (2 * ScreenWidth)
+    FeaturesPopup_y = (ScreenHeight/2) - (FeaturesPopupHeight/2)
+
+    # Set Window Dimensions and location
+    root.popup.geometry('%dx%d+%d+%d' % (FeaturesPopupWidth, FeaturesPopupHeight, FeaturesPopup_x, FeaturesPopup_y))
+
+    root.popup.grid_columnconfigure((0, 1, 2, 3), weight=1)
+    root.popup.grid_rowconfigure((0, 1, 2, 3, 4), weight=1)
+
+    Ack_label = ctk.CTkLabel(master=root.popup, text="Are you sure you want to apply Features to Backtest Data from:")
+    Ack_label.grid(row=0, column=0, columnspan=4)
+
+    AckBegin_label = ctk.CTkLabel(master=root.popup, text="Begin: " + BacktestBeginDate[0][0] + "/" + BacktestBeginDate[0][1] + "/" + BacktestBeginDate[0][2])
+    AckBegin_label.grid(row=1, column=1)
+
+    AckEnd_label = ctk.CTkLabel(master=root.popup, text="End: " + BacktestEndDate[0][0] + "/" + BacktestEndDate[0][1] + "/" + BacktestEndDate[0][2])
+    AckEnd_label.grid(row=1, column=3)
+
+    Yes_button = ctk.CTkButton(master=root.popup, text="Yes", command=FeaturesData)
+    Yes_button.grid(row=4, column=1)
+
+    No_button = ctk.CTkButton(master=root.popup, text="No", command=root.popup.destroy)
+    No_button.grid(row=4, column=3)
+
+    # Make Popup stay ontop
+    root.popup.transient(root.popup.master)
+
+    # Hijack all commands from master, clicks on main window are ignored
+    root.popup.grab_set()
+
+def FeaturesData():
+    # Close Popup
+    root.popup.destroy()
+
+    BacktestEndDate_year = BacktestEndDate[0][0]
+
+    if len(BacktestEndDate[0][1]) == 1:
+        BacktestEndDate_month = "0" + BacktestEndDate[0][1]
+    else:
+        BacktestEndDate_month = BacktestEndDate[0][1]
+
+    if len(BacktestEndDate[0][2]) == 1:
+        BacktestEndDate_day = "0" + BacktestEndDate[0][2]
+    else:
+        BacktestEndDate_day = BacktestEndDate[0][2]
+
+
+    BacktestEndDate_date = BacktestEndDate_year + BacktestEndDate_month + BacktestEndDate_day
+
+    StrategyID = StrategyIDEntry.get()
+    StrategyID = "0000" + StrategyID
+
+    print("Apply Features to Backtest Data")
+    subprocess.run(["powershell", "-c", "python 10-code/10-runners/200-feature.py --model-type candidate -m backtest -d " + BacktestEndDate_date + " --strategy-id strat_" + StrategyID])
+
+    StrategyIDFeaturesDirectory = ProjectDirectory + str("/20-data/400-models/candidate/strat_0000" + StrategyID + "/10b/20-features/MNQ/1m/50-backtest")
+
+    UpdateFileListbox(StrategyIDFeatures_listbox, StrategyIDFeaturesDirectory)
+
+    return
+
+# Features Data Button
+FeaturesData_button = ctk.CTkButton(master=Features_frame, text="Apply Features to Backtest Data", command=FeaturesDataAck)
+FeaturesData_button.place(x=70, y=90)
+FeaturesData_button.configure(width=150, height=25)
+
+
+#------------------------------------------------------------------------------
+# Generate Labels Frame
+Labels_frame = ctk.CTkFrame(root)
+Labels_frame.place(x=1390, y=310)
+Labels_frame.configure(width = 370, height = 300)
+
+# Labels Title
+LabelsTitle_label = ctk.CTkLabel(master=Labels_frame, text="Labels", font=("Calibri", 35))
+LabelsTitle_label.place(x=10, y=5)
+
+StrategyIDLabelsDirectory = ProjectDirectory + str("/20-data/400-models/candidate/strat_00001/10b/30-labels/MNQ/1m/10b/50-backtest")
+
+# StrategyID Files Listbox
+StrategyIDLabels_listbox = tk.Listbox(Labels_frame, width = 40, height = 5)
+StrategyIDLabels_listbox.place(x=100, y=220)
+StrategyIDLabels_listbox.configure(font=("Calibri", 18))
+
+# Update Listbox with files from Directory
+UpdateFileListbox(StrategyIDLabels_listbox, StrategyIDLabelsDirectory)
+
+def LabelsDataAck():
+    root.popup = ctk.CTkToplevel()
+    root.popup.wm_title("Apply Labels to Backtest Data")
+
+    # Popup Dimensions
+    LabelsPopupWidth = 400
+    LabelsPopupHeight = 100
+
+    # Screen Dimensions
+    ScreenWidth = root.winfo_screenwidth()
+    ScreenHeight = root.winfo_screenheight()
+
+    # Calculate x and y coordinates for Popup
+    LabelsPopup_x = (ScreenWidth/2) - (LabelsPopupWidth/2) + (2 * ScreenWidth)
+    LabelsPopup_y = (ScreenHeight/2) - (LabelsPopupHeight/2)
+
+    # Set Window Dimensions and location
+    root.popup.geometry('%dx%d+%d+%d' % (LabelsPopupWidth, LabelsPopupHeight, LabelsPopup_x, LabelsPopup_y))
+
+    root.popup.grid_columnconfigure((0, 1, 2, 3), weight=1)
+    root.popup.grid_rowconfigure((0, 1, 2, 3, 4), weight=1)
+
+    Ack_label = ctk.CTkLabel(master=root.popup, text="Are you sure you want to apply Labels to Backtest Data from:")
+    Ack_label.grid(row=0, column=0, columnspan=4)
+
+    AckBegin_label = ctk.CTkLabel(master=root.popup, text="Begin: " + BacktestBeginDate[0][0] + "/" + BacktestBeginDate[0][1] + "/" + BacktestBeginDate[0][2])
+    AckBegin_label.grid(row=1, column=1)
+
+    AckEnd_label = ctk.CTkLabel(master=root.popup, text="End: " + BacktestEndDate[0][0] + "/" + BacktestEndDate[0][1] + "/" + BacktestEndDate[0][2])
+    AckEnd_label.grid(row=1, column=3)
+
+    Yes_button = ctk.CTkButton(master=root.popup, text="Yes", command=LabelsData)
+    Yes_button.grid(row=4, column=1)
+
+    No_button = ctk.CTkButton(master=root.popup, text="No", command=root.popup.destroy)
+    No_button.grid(row=4, column=3)
+
+    # Make Popup stay ontop
+    root.popup.transient(root.popup.master)
+
+    # Hijack all commands from master, clicks on main window are ignored
+    root.popup.grab_set()
+
+def LabelsData():
+    # Close Popup
+    root.popup.destroy()
+
+    BacktestEndDate_year = BacktestEndDate[0][0]
+
+    if len(BacktestEndDate[0][1]) == 1:
+        BacktestEndDate_month = "0" + BacktestEndDate[0][1]
+    else:
+        BacktestEndDate_month = BacktestEndDate[0][1]
+
+    if len(BacktestEndDate[0][2]) == 1:
+        BacktestEndDate_day = "0" + BacktestEndDate[0][2]
+    else:
+        BacktestEndDate_day = BacktestEndDate[0][2]
+
+
+    BacktestEndDate_date = BacktestEndDate_year + BacktestEndDate_month + BacktestEndDate_day
+
+    StrategyID = StrategyIDEntry.get()
+    StrategyID = "0000" + StrategyID
+
+    print("Apply Labels to Backtest Data")
+    subprocess.run(["powershell", "-c", "python 10-code/10-runners/300-label.py --model-type candidate -m backtest -d " + BacktestEndDate_date + " --strategy-id strat_" + StrategyID])
+
+    StrategyIDLabelsDirectory = ProjectDirectory + str("/20-data/400-models/candidate/strat_0000" + StrategyID + "/10b/30-labels/MNQ/1m/10b/50-backtest")
+
+    UpdateFileListbox(StrategyIDLabels_listbox, StrategyIDLabelsDirectory)
+
+    return
+
+# Labels Data Button
+LabelsData_button = ctk.CTkButton(master=Labels_frame, text="Apply Labels to Backtest Data", command=LabelsDataAck)
+LabelsData_button.place(x=70, y=90)
+LabelsData_button.configure(width=150, height=25)
+
+
+
 
 # Call to initiate dates on startup
 TrainingBegin()
@@ -606,6 +815,6 @@ Clock()
 
 #------------------------------------------------------------------------------
 # Run Window
-root.after(3000, lambda: root.destroy())
+# root.after(3000, lambda: root.destroy())
 root.mainloop()  
 
