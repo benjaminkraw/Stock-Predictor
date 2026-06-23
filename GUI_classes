@@ -1,0 +1,161 @@
+#------------------------------------------------------------------------------
+# Import Library
+import tkinter as tk                        # Base Tk Interface
+from tkinter import ttk                     # Theme support for tkinter
+import customtkinter as ctk                 # Custome Theme for tkinter
+
+from tkcalendar import Calendar             # Calendar for tkinter
+from tkinter.messagebox import showinfo
+
+import datetime                             # Current DateTime
+import time                                 # Current Time
+
+import numpy as np                          # Math
+
+from screeninfo import get_monitors         # Connected Monitor information
+
+from os import listdir                      # Access base drives of local PC
+from os.path import isfile, join
+
+from matplotlib.figure import Figure        # Data graphing
+from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)
+
+#------------------------------------------------------------------------------
+# Class to Generate Tab View
+class TabView(ctk.CTkTabview):
+    def __init__(self, master, **kwargs):
+        super().__init__(master, **kwargs)
+
+        # Create Tabs
+        Tab1 = "Ingest Data"
+        Tab2 = "Candidate"
+        Tab3 = "Analyze Predictions"
+
+        self.add(Tab1)
+        self.add(Tab2)
+        self.add(Tab3)
+
+        # Add widgets on tabs
+        self.label = ctk.CTkLabel(master=self.tab(Tab1))
+        self.label.place(x=10, y=10)
+
+
+
+
+
+#------------------------------------------------------------------------------
+# Function to return coorindate location for display
+def DisplayCoords(self, WindowWidth, WindowHeight):
+    # Get connected monitors information
+        num_monitors = 0
+        m = ""
+        monitors =  np.empty(shape=(0, 8), dtype='object')
+        for m in get_monitors():
+            # Collect current monitor's data
+            monitor_data = str(m)
+
+            # Parse text between ", "
+            x, y, width, height, width_mm, height_mm, name, is_primary = monitor_data.split(", ")
+            
+            # Parse out data after each "=" and replace itself
+            x = x.split("=", 1)[1]
+            y = y.split("=", 1)[1]
+            width = width.split("=", 1)[1]
+            height = height.split("=", 1)[1]
+            width_mm = width_mm.split("=", 1)[1]
+            height_mm = height_mm.split("=", 1)[1]
+            name = name.split("=", 1)[1]
+            is_primary = is_primary.split("=", 1)[1]
+        
+            # Append current loops monitor data
+            monitors = np.append(monitors, [[x, y, width, height, width_mm, height_mm, name, is_primary]], axis = 0)
+
+            num_monitors += 1
+
+
+        # Monitor Dimensions
+        Monitor1Width = int(monitors[0,2])
+        Monitor1Height = int(monitors[0,3])
+
+        Monitor2Width = int(monitors[1,2])
+        Monitor2Height = int(monitors[0,3])
+
+        # Screen Dimensions (Determines Microsoft Windows Scaling)
+        ScreenWidth = self.winfo_screenwidth()
+        ScreenHeight = self.winfo_screenheight()
+
+        Monitor1_to_screen_scaling = Monitor1Width / ScreenWidth
+        Monitor2_to_screen_scaling = Monitor2Width / ScreenWidth
+
+        WindowsTaskbarHeight = 48
+
+        # Calculate x and y coordinates for Window
+        Window_x = (Monitor2Width/2) - ((WindowWidth * Monitor2_to_screen_scaling) / 2) + Monitor1Width
+        Window_y = (Monitor2Height/2) - ((WindowHeight * Monitor2_to_screen_scaling) / 2) - WindowsTaskbarHeight    
+
+        return Window_x, Window_y
+
+#------------------------------------------------------------------------------
+# Class to Generate Application
+class App(ctk.CTk):
+    def __init__(self):
+        super().__init__()
+        # Set Custom TKinter Appearance
+        self._set_appearance_mode("dark")
+
+        # Main Window Title
+        self.title("Stock Predictor 1000")                    
+
+        #------------------------------------------------------------------------------
+        # Main Window Dimensions
+        MainWindowWidth = 1920
+        MainWindowHeight = 1080
+
+        # Calculate Main Window x and y coordinates
+        MainWindow_x, MainWindow_y = DisplayCoords(self, MainWindowWidth, MainWindowHeight)
+
+        # Set Window Dimensions and location
+        self.geometry('%dx%d+%d+%d' % (MainWindowWidth, MainWindowHeight, MainWindow_x, MainWindow_y))
+        self.minsize(600,600)
+
+        #------------------------------------------------------------------------------
+        # Set Tab View for Application
+        self.tab_view = TabView(master=self)
+        self.tab_view.place(x=10, y=200)
+
+        #------------------------------------------------------------------------------
+        # Create Window Menu
+        menu = tk.Menu(self)
+        self.config(menu=menu)
+
+        # Create File in Menu
+        filemenu = tk.Menu(menu)
+        menu.add_cascade(label="File", menu=filemenu)
+        filemenu.add_command(label="Exit", command=self.quit)
+
+        self.Header()
+
+    #------------------------------------------------------------------------------
+    # Generate Header
+    def Header(self):
+        # Generate Title Block Frame
+        Title_frame = ctk.CTkFrame(master=self)
+        Title_frame.place(x=0, y=0)
+        Title_frame.configure(width = 380, height = 70)
+
+        # Title
+        Title_label = ctk.CTkLabel(master=Title_frame, text="Stock Predictor 1000", font=("Calibri", 34))
+        Title_label.place(x=20, y=5)
+
+        # Credits
+        Credits_label = ctk.CTkLabel(master=Title_frame, text="Created by: Kiel Penrod & Benjamin Kraw", font=("Calibri", 14))
+        Credits_label.place(x=45, y=40)
+
+
+#------------------------------------------------------------------------------
+# Create Application
+app = App()
+
+# Run Application
+app.after(3000, lambda: app.destroy())
+app.mainloop()
