@@ -25,10 +25,6 @@ from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationTool
 
 #------------------------------------------------------------------------------
 # Define Functions
-# Given Mouse Wheel event, Scroll Y on canvas
-def on_mouse_wheel(event):
-    # canvas.yview_scroll(int(-1*(event.delta/120)), "units")
-    return
 
 
 #------------------------------------------------------------------------------
@@ -107,6 +103,7 @@ filemenu = tk.Menu(menu)
 menu.add_cascade(label="File", menu=filemenu)
 filemenu.add_command(label="Exit", command=root.quit)
 
+
 #------------------------------------------------------------------------------
 # Generate Title Block Frame
 Title_frame = ctk.CTkFrame(root)
@@ -120,6 +117,33 @@ Title_label.place(x=20, y=5)
 # Credits
 Credits_label = ctk.CTkLabel(master=Title_frame, text="Created by: Kiel Penrod & Benjamin Kraw", font=("Calibri", 14))
 Credits_label.place(x=45, y=40)
+
+
+#------------------------------------------------------------------------------
+# Create Tabs
+TabView = ctk.CTkTabview(master=root)
+TabView.place(x=0, y=60)
+TabView.configure(height = 500)
+
+TabView.add("Ingest Data")
+TabView.add("Model")
+
+TabView.set("Ingest Data")
+
+
+
+# tabview = customtkinter.CTkTabview(master=app)
+# tabview.pack(padx=20, pady=20)
+
+# tabview.add("tab 1")  # add tab at the end
+# tabview.add("tab 2")  # add tab at the end
+# tabview.set("tab 2")  # set currently visible tab
+
+# button = customtkinter.CTkButton(master=tabview.tab("tab 1"))
+# button.pack(padx=20, pady=20)
+
+
+
 
 
 
@@ -710,7 +734,9 @@ LabelsTitle_label.place(x=10, y=5)
 
 StrategyIDLabelsDirectory = ProjectDirectory + str("/20-data/400-models/candidate/strat_00001/10b/30-labels/MNQ/1m/10b/50-backtest")
 
-# StrategyID Files Listbox
+StrategyID = "0"
+
+# StrategyID Labels Files Listbox
 StrategyIDLabels_listbox = tk.Listbox(Labels_frame, width = 40, height = 5)
 StrategyIDLabels_listbox.place(x=100, y=220)
 StrategyIDLabels_listbox.configure(font=("Calibri", 18))
@@ -780,6 +806,7 @@ def LabelsData():
 
     BacktestEndDate_date = BacktestEndDate_year + BacktestEndDate_month + BacktestEndDate_day
 
+    global StrategyID
     StrategyID = StrategyIDEntry.get()
     StrategyID = "0000" + StrategyID
 
@@ -797,8 +824,514 @@ LabelsData_button = ctk.CTkButton(master=Labels_frame, text="Apply Labels to Bac
 LabelsData_button.place(x=70, y=90)
 LabelsData_button.configure(width=150, height=25)
 
+#------------------------------------------------------------------------------
+# Generate Train Frame
+Train_frame = ctk.CTkFrame(root)
+Train_frame.place(x=0, y=620)
+Train_frame.configure(width = 370, height = 300)
+
+# Train Title
+TrainTitle_label = ctk.CTkLabel(master=Train_frame, text="Train", font=("Calibri", 35))
+TrainTitle_label.place(x=10, y=5)
+
+# StrategyIDTrainDirectory = ProjectDirectory + str("/20-data/400-models/candidate/strat_00001/10b/30-labels/MNQ/1m/10b/50-backtest")
+
+# StrategyID Train Files Listbox
+StrategyIDTrain_listbox = tk.Listbox(Train_frame, width = 40, height = 5)
+StrategyIDTrain_listbox.place(x=100, y=220)
+StrategyIDTrain_listbox.configure(font=("Calibri", 18))
+
+# Update Listbox with files from Directory
+# UpdateFileListbox(StrategyIDTrain_listbox, StrategyIDTrainDirectory)
+
+def TrainDataAck():
+    root.popup = ctk.CTkToplevel()
+    root.popup.wm_title("Train Candidate to Backtest Data")
+
+    # Popup Dimensions
+    TrainPopupWidth = 400
+    TrainPopupHeight = 100
+
+    # Screen Dimensions
+    ScreenWidth = root.winfo_screenwidth()
+    ScreenHeight = root.winfo_screenheight()
+
+    # Calculate x and y coordinates for Popup
+    TrainPopup_x = (ScreenWidth/2) - (TrainPopupWidth/2) + (2 * ScreenWidth)
+    TrainPopup_y = (ScreenHeight/2) - (TrainPopupHeight/2)
+
+    # Set Window Dimensions and location
+    root.popup.geometry('%dx%d+%d+%d' % (TrainPopupWidth, TrainPopupHeight, TrainPopup_x, TrainPopup_y))
+
+    root.popup.grid_columnconfigure((0, 1, 2, 3), weight=1)
+    root.popup.grid_rowconfigure((0, 1, 2, 3, 4), weight=1)
+
+    Ack_label = ctk.CTkLabel(master=root.popup, text="Are you sure you want Train Candidate to Backtest Data from:")
+    Ack_label.grid(row=0, column=0, columnspan=4)
+
+    AckBegin_label = ctk.CTkLabel(master=root.popup, text="Begin: " + BacktestBeginDate[0][0] + "/" + BacktestBeginDate[0][1] + "/" + BacktestBeginDate[0][2])
+    AckBegin_label.grid(row=1, column=1)
+
+    AckEnd_label = ctk.CTkLabel(master=root.popup, text="End: " + BacktestEndDate[0][0] + "/" + BacktestEndDate[0][1] + "/" + BacktestEndDate[0][2])
+    AckEnd_label.grid(row=1, column=3)
+
+    Yes_button = ctk.CTkButton(master=root.popup, text="Yes", command=TrainData)
+    Yes_button.grid(row=4, column=1)
+
+    No_button = ctk.CTkButton(master=root.popup, text="No", command=root.popup.destroy)
+    No_button.grid(row=4, column=3)
+
+    # Make Popup stay ontop
+    root.popup.transient(root.popup.master)
+
+    # Hijack all commands from master, clicks on main window are ignored
+    root.popup.grab_set()
+
+def TrainData():
+    # Close Popup
+    root.popup.destroy()
+
+    BacktestEndDate_year = BacktestEndDate[0][0]
+
+    if len(BacktestEndDate[0][1]) == 1:
+        BacktestEndDate_month = "0" + BacktestEndDate[0][1]
+    else:
+        BacktestEndDate_month = BacktestEndDate[0][1]
+
+    if len(BacktestEndDate[0][2]) == 1:
+        BacktestEndDate_day = "0" + BacktestEndDate[0][2]
+    else:
+        BacktestEndDate_day = BacktestEndDate[0][2]
 
 
+    BacktestEndDate_date = BacktestEndDate_year + BacktestEndDate_month + BacktestEndDate_day
+
+    global StrategyID
+    StrategyID = StrategyIDEntry.get()
+    StrategyID = "0000" + StrategyID
+    print(StrategyID)
+
+    print("Training Candidate to Backtest Data")
+    subprocess.run(["powershell", "-c", "python 10-code/10-runners/400-train.py --mode training --strategy-id strat_" + StrategyID])
+
+    # StrategyIDTrainDirectory = ProjectDirectory + str("/20-data/400-models/candidate/strat_0000" + StrategyID + "/10b/30-labels/MNQ/1m/10b/50-backtest")
+
+    # UpdateFileListbox(StrategyIDTrain_listbox, StrategyIDTrainDirectory)
+
+    return
+
+# Train Data Button
+TrainData_button = ctk.CTkButton(master=Train_frame, text="Train Candidate", command=TrainDataAck)
+TrainData_button.place(x=70, y=90)
+TrainData_button.configure(width=150, height=25)
+
+
+#------------------------------------------------------------------------------
+# Generate Backtest Candidate Frame
+BacktestCandidate_frame = ctk.CTkFrame(root)
+BacktestCandidate_frame.place(x=380, y=620)
+BacktestCandidate_frame.configure(width = 370, height = 300)
+
+# BacktestCandidate Title
+BacktestCandidateTitle_label = ctk.CTkLabel(master=BacktestCandidate_frame, text="Backtest Candidate", font=("Calibri", 35))
+BacktestCandidateTitle_label.place(x=10, y=5)
+
+# StrategyIDBacktestCandidateDirectory = ProjectDirectory + str("/20-data/400-models/candidate/strat_00001/10b/30-labels/MNQ/1m/10b/50-backtest")
+
+# StrategyID BacktestCandidate Files Listbox
+StrategyIDBacktestCandidate_listbox = tk.Listbox(BacktestCandidate_frame, width = 40, height = 5)
+StrategyIDBacktestCandidate_listbox.place(x=100, y=220)
+StrategyIDBacktestCandidate_listbox.configure(font=("Calibri", 18))
+
+# Update Listbox with files from Directory
+# UpdateFileListbox(StrategyIDBacktestCandidate_listbox, StrategyIDBacktestCandidateDirectory)
+
+def BacktestCandidateDataAck():
+    root.popup = ctk.CTkToplevel()
+    root.popup.wm_title("Backtest Candidate to Backtest Data")
+
+    # Popup Dimensions
+    BacktestCandidatePopupWidth = 400
+    BacktestCandidatePopupHeight = 100
+
+    # Screen Dimensions
+    ScreenWidth = root.winfo_screenwidth()
+    ScreenHeight = root.winfo_screenheight()
+
+    # Calculate x and y coordinates for Popup
+    BacktestCandidatePopup_x = (ScreenWidth/2) - (BacktestCandidatePopupWidth/2) + (2 * ScreenWidth)
+    BacktestCandidatePopup_y = (ScreenHeight/2) - (BacktestCandidatePopupHeight/2)
+
+    # Set Window Dimensions and location
+    root.popup.geometry('%dx%d+%d+%d' % (BacktestCandidatePopupWidth, BacktestCandidatePopupHeight, BacktestCandidatePopup_x, BacktestCandidatePopup_y))
+
+    root.popup.grid_columnconfigure((0, 1, 2, 3), weight=1)
+    root.popup.grid_rowconfigure((0, 1, 2, 3, 4), weight=1)
+
+    Ack_label = ctk.CTkLabel(master=root.popup, text="Are you sure you want Backtest Candidate to Backtest Data from:")
+    Ack_label.grid(row=0, column=0, columnspan=4)
+
+    AckBegin_label = ctk.CTkLabel(master=root.popup, text="Begin: " + BacktestBeginDate[0][0] + "/" + BacktestBeginDate[0][1] + "/" + BacktestBeginDate[0][2])
+    AckBegin_label.grid(row=1, column=1)
+
+    AckEnd_label = ctk.CTkLabel(master=root.popup, text="End: " + BacktestEndDate[0][0] + "/" + BacktestEndDate[0][1] + "/" + BacktestEndDate[0][2])
+    AckEnd_label.grid(row=1, column=3)
+
+    Yes_button = ctk.CTkButton(master=root.popup, text="Yes", command=BacktestCandidateData)
+    Yes_button.grid(row=4, column=1)
+
+    No_button = ctk.CTkButton(master=root.popup, text="No", command=root.popup.destroy)
+    No_button.grid(row=4, column=3)
+
+    # Make Popup stay ontop
+    root.popup.transient(root.popup.master)
+
+    # Hijack all commands from master, clicks on main window are ignored
+    root.popup.grab_set()
+
+def BacktestCandidateData():
+    # Close Popup
+    root.popup.destroy()
+
+    BacktestEndDate_year = BacktestEndDate[0][0]
+
+    if len(BacktestEndDate[0][1]) == 1:
+        BacktestEndDate_month = "0" + BacktestEndDate[0][1]
+    else:
+        BacktestEndDate_month = BacktestEndDate[0][1]
+
+    if len(BacktestEndDate[0][2]) == 1:
+        BacktestEndDate_day = "0" + BacktestEndDate[0][2]
+    else:
+        BacktestEndDate_day = BacktestEndDate[0][2]
+
+
+    BacktestEndDate_date = BacktestEndDate_year + BacktestEndDate_month + BacktestEndDate_day
+
+    global StrategyID
+    StrategyID = StrategyIDEntry.get()
+    StrategyID = "0000" + StrategyID
+    print(StrategyID)
+
+    print("BacktestCandidateing Candidate to Backtest Data")
+    subprocess.run(["powershell", "-c", "python 10-code/10-runners/500-backtest.py -d --strategy-id strat_" + StrategyID])
+
+    # StrategyIDBacktestCandidateDirectory = ProjectDirectory + str("/20-data/400-models/candidate/strat_0000" + StrategyID + "/10b/30-labels/MNQ/1m/10b/50-backtest")
+
+    # UpdateFileListbox(StrategyIDBacktestCandidate_listbox, StrategyIDBacktestCandidateDirectory)
+
+    return
+
+# BacktestCandidate Data Button
+BacktestCandidateData_button = ctk.CTkButton(master=BacktestCandidate_frame, text="Backtest Candidate", command=BacktestCandidateDataAck)
+BacktestCandidateData_button.place(x=70, y=90)
+BacktestCandidateData_button.configure(width=150, height=25)
+
+
+#------------------------------------------------------------------------------
+# Generate Evaluate Candidate Frame
+EvaluateCandidate_frame = ctk.CTkFrame(root)
+EvaluateCandidate_frame.place(x=760, y=620)
+EvaluateCandidate_frame.configure(width = 370, height = 300)
+
+# EvaluateCandidate Title
+EvaluateCandidateTitle_label = ctk.CTkLabel(master=EvaluateCandidate_frame, text="Evaluate Candidate", font=("Calibri", 35))
+EvaluateCandidateTitle_label.place(x=10, y=5)
+
+# StrategyIDEvaluateCandidateDirectory = ProjectDirectory + str("/20-data/400-models/candidate/strat_00001/10b/30-labels/MNQ/1m/10b/50-Evaluate")
+
+# StrategyID EvaluateCandidate Files Listbox
+StrategyIDEvaluateCandidate_listbox = tk.Listbox(EvaluateCandidate_frame, width = 40, height = 5)
+StrategyIDEvaluateCandidate_listbox.place(x=100, y=220)
+StrategyIDEvaluateCandidate_listbox.configure(font=("Calibri", 18))
+
+# Update Listbox with files from Directory
+# UpdateFileListbox(StrategyIDEvaluateCandidate_listbox, StrategyIDEvaluateCandidateDirectory)
+
+def EvaluateCandidateDataAck():
+    root.popup = ctk.CTkToplevel()
+    root.popup.wm_title("Evaluate Candidate to Evaluate Data")
+
+    # Popup Dimensions
+    EvaluateCandidatePopupWidth = 400
+    EvaluateCandidatePopupHeight = 100
+
+    # Screen Dimensions
+    ScreenWidth = root.winfo_screenwidth()
+    ScreenHeight = root.winfo_screenheight()
+
+    # Calculate x and y coordinates for Popup
+    EvaluateCandidatePopup_x = (ScreenWidth/2) - (EvaluateCandidatePopupWidth/2) + (2 * ScreenWidth)
+    EvaluateCandidatePopup_y = (ScreenHeight/2) - (EvaluateCandidatePopupHeight/2)
+
+    # Set Window Dimensions and location
+    root.popup.geometry('%dx%d+%d+%d' % (EvaluateCandidatePopupWidth, EvaluateCandidatePopupHeight, EvaluateCandidatePopup_x, EvaluateCandidatePopup_y))
+
+    root.popup.grid_columnconfigure((0, 1, 2, 3), weight=1)
+    root.popup.grid_rowconfigure((0, 1, 2, 3, 4), weight=1)
+
+    Ack_label = ctk.CTkLabel(master=root.popup, text="Are you sure you want Evaluate Candidate to Evaluate Data from:")
+    Ack_label.grid(row=0, column=0, columnspan=4)
+
+    AckBegin_label = ctk.CTkLabel(master=root.popup, text="Begin: " + BacktestBeginDate[0][0] + "/" + BacktestBeginDate[0][1] + "/" + BacktestBeginDate[0][2])
+    AckBegin_label.grid(row=1, column=1)
+
+    AckEnd_label = ctk.CTkLabel(master=root.popup, text="End: " + BacktestEndDate[0][0] + "/" + BacktestEndDate[0][1] + "/" + BacktestEndDate[0][2])
+    AckEnd_label.grid(row=1, column=3)
+
+    Yes_button = ctk.CTkButton(master=root.popup, text="Yes", command=BacktestCandidateData)
+    Yes_button.grid(row=4, column=1)
+
+    No_button = ctk.CTkButton(master=root.popup, text="No", command=root.popup.destroy)
+    No_button.grid(row=4, column=3)
+
+    # Make Popup stay ontop
+    root.popup.transient(root.popup.master)
+
+    # Hijack all commands from master, clicks on main window are ignored
+    root.popup.grab_set()
+
+def EvaluateCandidateData():
+    # Close Popup
+    root.popup.destroy()
+
+    BacktestEndDate_year = BacktestEndDate[0][0]
+
+    if len(BacktestEndDate[0][1]) == 1:
+        BacktestEndDate_month = "0" + BacktestEndDate[0][1]
+    else:
+        BacktestEndDate_month = BacktestEndDate[0][1]
+
+    if len(BacktestEndDate[0][2]) == 1:
+        BacktestEndDate_day = "0" + BacktestEndDate[0][2]
+    else:
+        BacktestEndDate_day = BacktestEndDate[0][2]
+
+
+    BacktestEndDate_date = BacktestEndDate_year + BacktestEndDate_month + BacktestEndDate_day
+
+    global StrategyID
+    StrategyID = StrategyIDEntry.get()
+    StrategyID = "0000" + StrategyID
+    print(StrategyID)
+
+    print("Evaluate Candidate to Backtest Data")
+    subprocess.run(["powershell", "-c", "python 10-code/10-runners/600-evaluate.py -d --strategy-id strat_" + StrategyID])
+
+    # StrategyIDEvaluateCandidateDirectory = ProjectDirectory + str("/20-data/400-models/candidate/strat_0000" + StrategyID + "/10b/30-labels/MNQ/1m/10b/50-Evaluate")
+
+    # UpdateFileListbox(StrategyIDEvaluateCandidate_listbox, StrategyIDEvaluateCandidateDirectory)
+
+    return
+
+# EvaluateCandidate Data Button
+EvaluateCandidateData_button = ctk.CTkButton(master=EvaluateCandidate_frame, text="Evaluate Candidate", command=EvaluateCandidateDataAck)
+EvaluateCandidateData_button.place(x=70, y=90)
+EvaluateCandidateData_button.configure(width=150, height=25)
+
+
+#------------------------------------------------------------------------------
+# Generate Verify Candidate Frame
+VerifyCandidate_frame = ctk.CTkFrame(root)
+VerifyCandidate_frame.place(x=1140, y=620)
+VerifyCandidate_frame.configure(width = 370, height = 300)
+
+# VerifyCandidate Title
+VerifyCandidateTitle_label = ctk.CTkLabel(master=VerifyCandidate_frame, text="Verify Candidate", font=("Calibri", 35))
+VerifyCandidateTitle_label.place(x=10, y=5)
+
+# StrategyIDVerifyCandidateDirectory = ProjectDirectory + str("/20-data/400-models/candidate/strat_00001/10b/30-labels/MNQ/1m/10b/50-Verify")
+
+# StrategyID VerifyCandidate Files Listbox
+StrategyIDVerifyCandidate_listbox = tk.Listbox(VerifyCandidate_frame, width = 40, height = 5)
+StrategyIDVerifyCandidate_listbox.place(x=100, y=220)
+StrategyIDVerifyCandidate_listbox.configure(font=("Calibri", 18))
+
+# Update Listbox with files from Directory
+# UpdateFileListbox(StrategyIDVerifyCandidate_listbox, StrategyIDVerifyCandidateDirectory)
+
+def VerifyCandidateDataAck():
+    root.popup = ctk.CTkToplevel()
+    root.popup.wm_title("Verify Candidate to Verify Data")
+
+    # Popup Dimensions
+    VerifyCandidatePopupWidth = 400
+    VerifyCandidatePopupHeight = 100
+
+    # Screen Dimensions
+    ScreenWidth = root.winfo_screenwidth()
+    ScreenHeight = root.winfo_screenheight()
+
+    # Calculate x and y coordinates for Popup
+    VerifyCandidatePopup_x = (ScreenWidth/2) - (VerifyCandidatePopupWidth/2) + (2 * ScreenWidth)
+    VerifyCandidatePopup_y = (ScreenHeight/2) - (VerifyCandidatePopupHeight/2)
+
+    # Set Window Dimensions and location
+    root.popup.geometry('%dx%d+%d+%d' % (VerifyCandidatePopupWidth, VerifyCandidatePopupHeight, VerifyCandidatePopup_x, VerifyCandidatePopup_y))
+
+    root.popup.grid_columnconfigure((0, 1, 2, 3), weight=1)
+    root.popup.grid_rowconfigure((0, 1, 2, 3, 4), weight=1)
+
+    Ack_label = ctk.CTkLabel(master=root.popup, text="Are you sure you want Verify Candidate to Verify Data from:")
+    Ack_label.grid(row=0, column=0, columnspan=4)
+
+    AckBegin_label = ctk.CTkLabel(master=root.popup, text="Begin: " + BacktestBeginDate[0][0] + "/" + BacktestBeginDate[0][1] + "/" + BacktestBeginDate[0][2])
+    AckBegin_label.grid(row=1, column=1)
+
+    AckEnd_label = ctk.CTkLabel(master=root.popup, text="End: " + BacktestEndDate[0][0] + "/" + BacktestEndDate[0][1] + "/" + BacktestEndDate[0][2])
+    AckEnd_label.grid(row=1, column=3)
+
+    Yes_button = ctk.CTkButton(master=root.popup, text="Yes", command=BacktestCandidateData)
+    Yes_button.grid(row=4, column=1)
+
+    No_button = ctk.CTkButton(master=root.popup, text="No", command=root.popup.destroy)
+    No_button.grid(row=4, column=3)
+
+    # Make Popup stay ontop
+    root.popup.transient(root.popup.master)
+
+    # Hijack all commands from master, clicks on main window are ignored
+    root.popup.grab_set()
+
+def VerifyCandidateData():
+    # Close Popup
+    root.popup.destroy()
+
+    BacktestEndDate_year = BacktestEndDate[0][0]
+
+    if len(BacktestEndDate[0][1]) == 1:
+        BacktestEndDate_month = "0" + BacktestEndDate[0][1]
+    else:
+        BacktestEndDate_month = BacktestEndDate[0][1]
+
+    if len(BacktestEndDate[0][2]) == 1:
+        BacktestEndDate_day = "0" + BacktestEndDate[0][2]
+    else:
+        BacktestEndDate_day = BacktestEndDate[0][2]
+
+
+    BacktestEndDate_date = BacktestEndDate_year + BacktestEndDate_month + BacktestEndDate_day
+
+    global StrategyID
+    StrategyID = StrategyIDEntry.get()
+    StrategyID = "0000" + StrategyID
+    print(StrategyID)
+
+    print("Verify Candidate to Backtest Data")
+    subprocess.run(["powershell", "-c", "python 10-code/10-runners/700-verify.py -d --strategy-id strat_" + StrategyID])
+
+    # StrategyIDVerifyCandidateDirectory = ProjectDirectory + str("/20-data/400-models/candidate/strat_0000" + StrategyID + "/10b/30-labels/MNQ/1m/10b/50-Verify")
+
+    # UpdateFileListbox(StrategyIDVerifyCandidate_listbox, StrategyIDVerifyCandidateDirectory)
+
+    return
+
+# VerifyCandidate Data Button
+VerifyCandidateData_button = ctk.CTkButton(master=VerifyCandidate_frame, text="Verify Candidate", command=VerifyCandidateDataAck)
+VerifyCandidateData_button.place(x=70, y=90)
+VerifyCandidateData_button.configure(width=150, height=25)
+
+
+#------------------------------------------------------------------------------
+# Generate Promote Candidate Frame
+PromoteCandidate_frame = ctk.CTkFrame(root)
+PromoteCandidate_frame.place(x=1520, y=620)
+PromoteCandidate_frame.configure(width = 370, height = 300)
+
+# PromoteCandidate Title
+PromoteCandidateTitle_label = ctk.CTkLabel(master=PromoteCandidate_frame, text="Promote Candidate", font=("Calibri", 35))
+PromoteCandidateTitle_label.place(x=10, y=5)
+
+# StrategyIDPromoteCandidateDirectory = ProjectDirectory + str("/20-data/400-models/candidate/strat_00001/10b/30-labels/MNQ/1m/10b/50-Promote")
+
+# StrategyID PromoteCandidate Files Listbox
+StrategyIDPromoteCandidate_listbox = tk.Listbox(PromoteCandidate_frame, width = 40, height = 5)
+StrategyIDPromoteCandidate_listbox.place(x=100, y=220)
+StrategyIDPromoteCandidate_listbox.configure(font=("Calibri", 18))
+
+# Update Listbox with files from Directory
+# UpdateFileListbox(StrategyIDPromoteCandidate_listbox, StrategyIDPromoteCandidateDirectory)
+
+def PromoteCandidateDataAck():
+    root.popup = ctk.CTkToplevel()
+    root.popup.wm_title("Promote Candidate to Promote Data")
+
+    # Popup Dimensions
+    PromoteCandidatePopupWidth = 400
+    PromoteCandidatePopupHeight = 100
+
+    # Screen Dimensions
+    ScreenWidth = root.winfo_screenwidth()
+    ScreenHeight = root.winfo_screenheight()
+
+    # Calculate x and y coordinates for Popup
+    PromoteCandidatePopup_x = (ScreenWidth/2) - (PromoteCandidatePopupWidth/2) + (2 * ScreenWidth)
+    PromoteCandidatePopup_y = (ScreenHeight/2) - (PromoteCandidatePopupHeight/2)
+
+    # Set Window Dimensions and location
+    root.popup.geometry('%dx%d+%d+%d' % (PromoteCandidatePopupWidth, PromoteCandidatePopupHeight, PromoteCandidatePopup_x, PromoteCandidatePopup_y))
+
+    root.popup.grid_columnconfigure((0, 1, 2, 3), weight=1)
+    root.popup.grid_rowconfigure((0, 1, 2, 3, 4), weight=1)
+
+    Ack_label = ctk.CTkLabel(master=root.popup, text="Are you sure you want Promote Candidate to Promote Data from:")
+    Ack_label.grid(row=0, column=0, columnspan=4)
+
+    AckBegin_label = ctk.CTkLabel(master=root.popup, text="Begin: " + BacktestBeginDate[0][0] + "/" + BacktestBeginDate[0][1] + "/" + BacktestBeginDate[0][2])
+    AckBegin_label.grid(row=1, column=1)
+
+    AckEnd_label = ctk.CTkLabel(master=root.popup, text="End: " + BacktestEndDate[0][0] + "/" + BacktestEndDate[0][1] + "/" + BacktestEndDate[0][2])
+    AckEnd_label.grid(row=1, column=3)
+
+    Yes_button = ctk.CTkButton(master=root.popup, text="Yes", command=BacktestCandidateData)
+    Yes_button.grid(row=4, column=1)
+
+    No_button = ctk.CTkButton(master=root.popup, text="No", command=root.popup.destroy)
+    No_button.grid(row=4, column=3)
+
+    # Make Popup stay ontop
+    root.popup.transient(root.popup.master)
+
+    # Hijack all commands from master, clicks on main window are ignored
+    root.popup.grab_set()
+
+def PromoteCandidateData():
+    # Close Popup
+    root.popup.destroy()
+
+    BacktestEndDate_year = BacktestEndDate[0][0]
+
+    if len(BacktestEndDate[0][1]) == 1:
+        BacktestEndDate_month = "0" + BacktestEndDate[0][1]
+    else:
+        BacktestEndDate_month = BacktestEndDate[0][1]
+
+    if len(BacktestEndDate[0][2]) == 1:
+        BacktestEndDate_day = "0" + BacktestEndDate[0][2]
+    else:
+        BacktestEndDate_day = BacktestEndDate[0][2]
+
+
+    BacktestEndDate_date = BacktestEndDate_year + BacktestEndDate_month + BacktestEndDate_day
+
+    global StrategyID
+    StrategyID = StrategyIDEntry.get()
+    StrategyID = "0000" + StrategyID
+    print(StrategyID)
+
+    print("Promote Candidate to Backtest Data")
+    subprocess.run(["powershell", "-c", "python 10-code/10-runners/800-promote.py -d --strategy-id strat_" + StrategyID])
+
+    # StrategyIDPromoteCandidateDirectory = ProjectDirectory + str("/20-data/400-models/candidate/strat_0000" + StrategyID + "/10b/30-labels/MNQ/1m/10b/50-Promote")
+
+    # UpdateFileListbox(StrategyIDPromoteCandidate_listbox, StrategyIDPromoteCandidateDirectory)
+
+    return
+
+# PromoteCandidate Data Button
+PromoteCandidateData_button = ctk.CTkButton(master=PromoteCandidate_frame, text="Promote Candidate", command=PromoteCandidateDataAck)
+PromoteCandidateData_button.place(x=70, y=90)
+PromoteCandidateData_button.configure(width=150, height=25)
 
 # Call to initiate dates on startup
 TrainingBegin()
