@@ -21,28 +21,7 @@ from matplotlib.figure import Figure        # Data graphing
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)
 
 #------------------------------------------------------------------------------
-# Class to Generate Tab View
-class TabView(ctk.CTkTabview):
-    def __init__(self, master, **kwargs):
-        super().__init__(master, **kwargs)
-
-        # Create Tabs
-        Tab1 = "Ingest Data"
-        Tab2 = "Candidate"
-        Tab3 = "Analyze Predictions"
-
-        self.add(Tab1)
-        self.add(Tab2)
-        self.add(Tab3)
-
-        # Add widgets on tabs
-        self.label = ctk.CTkLabel(master=self.tab(Tab1))
-        self.label.place(x=10, y=10)
-
-
-
-
-
+# Global Functions
 #------------------------------------------------------------------------------
 # Function to return coorindate location for display
 def DisplayCoords(self, WindowWidth, WindowHeight):
@@ -72,7 +51,6 @@ def DisplayCoords(self, WindowWidth, WindowHeight):
 
             num_monitors += 1
 
-
         # Monitor Dimensions
         Monitor1Width = int(monitors[0,2])
         Monitor1Height = int(monitors[0,3])
@@ -95,6 +73,139 @@ def DisplayCoords(self, WindowWidth, WindowHeight):
 
         return Window_x, Window_y
 
+
+#------------------------------------------------------------------------------
+# Class to Generate Tab View
+class TabView(ctk.CTkTabview):
+    def __init__(self, master, **kwargs):
+        super().__init__(master, **kwargs)
+
+        # Create Tabs
+        ProjectTab = "Project"
+        IngestDataTab = "Ingest Data"
+        ModelsTab = "Models"
+        AnalysisTab = "Analysis"
+
+        self.add(ProjectTab)
+        self.add(IngestDataTab)
+        self.add(ModelsTab)
+        self.add(AnalysisTab)
+
+        self.set(IngestDataTab)
+
+        # Setup Sections
+        Project_frame = ctk.CTkFrame(master=self.tab(ProjectTab))
+        Ingest_frame = ctk.CTkFrame(master=self.tab(IngestDataTab))
+        Models_frame = ctk.CTkFrame(master=self.tab(ModelsTab))
+        Analysis_frame = ctk.CTkFrame(master=self.tab(AnalysisTab))
+
+        # Setup Sub Sections
+        Features_frame = ctk.CTkFrame(master=Models_frame)
+        Labels_frame = ctk.CTkFrame(master=Models_frame)
+        Train_frame = ctk.CTkFrame(master=Models_frame)
+        Backtest_frame = ctk.CTkFrame(master=Models_frame)
+        Evaluate_frame = ctk.CTkFrame(master=Models_frame)
+        Verify_frame = ctk.CTkFrame(master=Models_frame)
+        Promote_frame = ctk.CTkFrame(master=Models_frame)
+
+
+        # Configure Sections
+        SectionWidth = MainWindowWidth - (4 * 10)
+        SectionHeight = MainWindowHeight - (4 * 10) - HeaderHeight - 50
+
+        Project_frame.place(x=0, y=0)
+        Project_frame.configure(width = SectionWidth, height = SectionHeight)
+        Project_frame.configure(fg_color=("#2B719E"))
+
+        Ingest_frame.place(x=0, y=0)
+        Ingest_frame.configure(width = SectionWidth, height = SectionHeight)
+        Ingest_frame.configure(fg_color=("#2B719E"))
+
+        Models_frame.place(x=0, y=0)
+        Models_frame.configure(width = SectionWidth, height = SectionHeight)
+        Models_frame.configure(fg_color=("#2B719E"))
+
+        Analysis_frame.place(x=0, y=0)
+        Analysis_frame.configure(width = SectionWidth, height = SectionHeight)
+        Analysis_frame.configure(fg_color=("#2B719E"))
+
+
+    # Configure Sub Sections
+        Features_frame.place(x=10, y=70)
+        Features_frame.configure(width = 370, height = 300)
+        Features_frame.configure(fg_color=("#2B719E"))
+        Features_frame.update_idletasks()
+
+        print(Features_frame.winfo_x() + Features_frame.winfo_width() + 10)
+        Labels_frame.place(x=Features_frame.winfo_x() + Features_frame.winfo_width() + 10, y=Features_frame.winfo_y())
+        Labels_frame.configure(width = 370, height = 300)
+        Labels_frame.configure(fg_color=("#2B719E"))
+        Labels_frame.update_idletasks()
+
+        print(Labels_frame.winfo_x() + Labels_frame.winfo_width() + 10)
+        Train_frame.place(x=Labels_frame.winfo_x() + Labels_frame.winfo_width() + 10, y=Labels_frame.winfo_y())
+        Train_frame.configure(width = 370, height = 300)
+        Train_frame.configure(fg_color=("#2B719E"))
+        Train_frame.update_idletasks()
+
+        Backtest_frame.place(x=Train_frame.winfo_x() + Train_frame.winfo_width() + 10, y=Train_frame.winfo_y())
+        Backtest_frame.configure(width = 370, height = 300)
+        Backtest_frame.configure(fg_color=("#2B719E"))
+        Backtest_frame.update_idletasks()
+
+        Evaluate_frame.place(x=Backtest_frame.winfo_x() + Backtest_frame.winfo_width() + 10, y=Backtest_frame.winfo_y())
+        Evaluate_frame.configure(width = 370, height = 300)
+        Evaluate_frame.configure(fg_color=("#2B719E"))
+        Evaluate_frame.update_idletasks()
+
+        Verify_frame.place(x=Evaluate_frame.winfo_x() + Evaluate_frame.winfo_width() + 10, y=Evaluate_frame.winfo_y())
+        Verify_frame.configure(width = 370, height = 300)
+        Verify_frame.configure(fg_color=("#2B719E"))
+        Verify_frame.update_idletasks()
+
+        Promote_frame.place(x=Verify_frame.winfo_x() + Verify_frame.winfo_width() + 10, y=Verify_frame.winfo_y())
+        Promote_frame.configure(width = 370, height = 300)
+        Promote_frame.configure(fg_color=("#2B719E"))
+        Promote_frame.update_idletasks()
+
+
+        # Sections Title
+        ProjectTitle_label = ctk.CTkLabel(master=Project_frame, text="Project", font=("Calibri", 35))
+        IngestTitle_label = ctk.CTkLabel(master=Ingest_frame, text="Ingest Data", font=("Calibri", 35))
+        ModelsTitle_label = ctk.CTkLabel(master=Models_frame, text="Models", font=("Calibri", 35))
+        AnalysisTitle_label = ctk.CTkLabel(master=Analysis_frame, text="Analysis", font=("Calibri", 35))
+
+        # Sub Sections Title
+        FeaturesTitle_label = ctk.CTkLabel(master=Features_frame, text="Features", font=("Calibri", 35))
+        LabelsTitle_label = ctk.CTkLabel(master=Labels_frame, text="Labels", font=("Calibri", 35))
+        TrainTitle_label = ctk.CTkLabel(master=Labels_frame, text="Train", font=("Calibri", 35))
+        BacktestTitle_label = ctk.CTkLabel(master=Labels_frame, text="Backtest Candidate", font=("Calibri", 35))
+        EvaluateTitle_label = ctk.CTkLabel(master=Labels_frame, text="Evaluate Candidate", font=("Calibri", 35))
+        VerifyTitle_label = ctk.CTkLabel(master=Labels_frame, text="Verify Candidate", font=("Calibri", 35))
+        PromoteTitle_label = ctk.CTkLabel(master=Labels_frame, text="Promote Candidate", font=("Calibri", 35))
+
+        
+        Title_x = 10
+        Title_y = 5
+
+        # Sections Title Location
+        ProjectTitle_label.place(x=Title_x, y=Title_y)
+        IngestTitle_label.place(x=Title_x, y=Title_y)
+        ModelsTitle_label.place(x=Title_x, y=Title_y)
+        AnalysisTitle_label.place(x=Title_x, y=Title_y)
+
+        # Sub Sections Title Location
+        FeaturesTitle_label.place(x=Title_x, y=Title_y)
+        LabelsTitle_label.place(x=Title_x, y=Title_y)
+        TrainTitle_label.place(x=Title_x, y=Title_y)
+        BacktestTitle_label.place(x=Title_x, y=Title_y)
+        EvaluateTitle_label.place(x=Title_x, y=Title_y)
+        VerifyTitle_label.place(x=Title_x, y=Title_y)
+        PromoteTitle_label.place(x=Title_x, y=Title_y)
+
+
+
+
 #------------------------------------------------------------------------------
 # Class to Generate Application
 class App(ctk.CTk):
@@ -108,7 +219,10 @@ class App(ctk.CTk):
 
         #------------------------------------------------------------------------------
         # Main Window Dimensions
+        global MainWindowWidth
         MainWindowWidth = 1920
+
+        global MainWindowHeight
         MainWindowHeight = 1080
 
         # Calculate Main Window x and y coordinates
@@ -119,11 +233,53 @@ class App(ctk.CTk):
         self.minsize(600,600)
 
         #------------------------------------------------------------------------------
-        # Set Tab View for Application
-        self.tab_view = TabView(master=self)
-        self.tab_view.place(x=10, y=200)
+        # Create Window Menu
+        self.Menu()
+
+        HeaderWidth = MainWindowWidth
+
+        global HeaderHeight
+        HeaderHeight = 70
+
+        # Create Window Header
+        self.Header(HeaderWidth, HeaderHeight)
+
+        # Run Clock
+        self.Clock()
 
         #------------------------------------------------------------------------------
+        # Set Tab View for Application
+        self.tab_view = TabView(master=self)
+        self.tab_view.place(x=10, y=(HeaderHeight + 5))
+        self.tab_view.configure(width=(MainWindowWidth - 20), height=(MainWindowHeight - (HeaderHeight + 5) - 30), anchor="nw")
+
+    #------------------------------------------------------------------------------
+    # Current Time
+    # https://www.geeksforgeeks.org/python/time-strftime-function-in-python/
+    def Clock(self):
+        DayOfWeek = time.strftime("%A")
+
+        Year = time.strftime("%Y")
+        Month = time.strftime("%B")
+        Day = time.strftime("%d")
+
+        Hour = time.strftime("%H")
+        Minute = time.strftime("%M")
+        Second = time.strftime("%S")
+        TimeZone = time.strftime("%Z")
+        TimeZoneOffset = time.strftime("%z")
+
+        CurrentTime_text = Hour + ":" + Minute + ":" + Second + " " + TimeZone + " " + TimeZoneOffset
+
+        Clock_label.configure(text=CurrentTime_text)
+        Clock_label.after(1000, self.Clock)
+        
+        Date_label.configure(text=DayOfWeek + " " + Month + " " + Day + ", " + Year)
+
+
+    #------------------------------------------------------------------------------
+    # Generate Main Window Menu
+    def Menu(self):
         # Create Window Menu
         menu = tk.Menu(self)
         self.config(menu=menu)
@@ -132,16 +288,15 @@ class App(ctk.CTk):
         filemenu = tk.Menu(menu)
         menu.add_cascade(label="File", menu=filemenu)
         filemenu.add_command(label="Exit", command=self.quit)
-
-        self.Header()
+         
 
     #------------------------------------------------------------------------------
-    # Generate Header
-    def Header(self):
+    # Generate Main Window Header
+    def Header(self, HeaderWidth, HeaderHeight):
         # Generate Title Block Frame
         Title_frame = ctk.CTkFrame(master=self)
         Title_frame.place(x=0, y=0)
-        Title_frame.configure(width = 380, height = 70)
+        Title_frame.configure(width = HeaderWidth, height = HeaderHeight)
 
         # Title
         Title_label = ctk.CTkLabel(master=Title_frame, text="Stock Predictor 1000", font=("Calibri", 34))
@@ -150,6 +305,16 @@ class App(ctk.CTk):
         # Credits
         Credits_label = ctk.CTkLabel(master=Title_frame, text="Created by: Kiel Penrod & Benjamin Kraw", font=("Calibri", 14))
         Credits_label.place(x=45, y=40)
+
+        # Current Date
+        global Date_label
+        Date_label = ctk.CTkLabel(master=Title_frame, text="Date", font=("Calibri", 20))
+        Date_label.place(x=750, y=10)
+
+        # Current Time
+        global Clock_label
+        Clock_label = ctk.CTkLabel(master=Title_frame, text="Time", font=("Calibri", 20))
+        Clock_label.place(x=750, y=35)
 
 
 #------------------------------------------------------------------------------
