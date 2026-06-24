@@ -63,7 +63,11 @@ def DisplayCoords(self, WindowWidth, WindowHeight):
         ScreenHeight = self.winfo_screenheight()
 
         Monitor1_to_screen_scaling = Monitor1Width / ScreenWidth
+
         Monitor2_to_screen_scaling = Monitor2Width / ScreenWidth
+
+        global PixScale 
+        PixScale = Monitor2_to_screen_scaling
 
         WindowsTaskbarHeight = 48
 
@@ -72,6 +76,60 @@ def DisplayCoords(self, WindowWidth, WindowHeight):
         Window_y = (Monitor2Height/2) - ((WindowHeight * Monitor2_to_screen_scaling) / 2) - WindowsTaskbarHeight    
 
         return Window_x, Window_y
+
+#------------------------------------------------------------------------------
+# Generate Powershell Command for Ingest Training Data
+def IngestTraining(Date):
+        Command = "python 10-code/10-runners/100-ingest.py -m training -d" + Date
+        return Command
+
+#------------------------------------------------------------------------------
+# Generate Powershell Command for Ingest Backtest Data
+def IngestBacktest(Date):
+        Command = "python 10-code/10-runners/100-ingest.py -m backtest -d" + Date
+        return Command
+
+#------------------------------------------------------------------------------
+# Generate Powershell Command for Applying Features to Backtest Data
+def Features(Date, StrategyID):
+        Command = "python 10-code/10-runners/200-feature.py --model-type candidate -m backtest -d " + Date + " --strategy-id strat_" + StrategyID
+        return Command
+
+#------------------------------------------------------------------------------
+# Generate Powershell Command for Applying Labels to Backtest Data
+def Features(Date, StrategyID):
+        Command = "python 10-code/10-runners/300-label.py --model-type candidate -m backtest -d " + Date + " --strategy-id strat_" + StrategyID
+        return Command
+
+#------------------------------------------------------------------------------
+# Generate Powershell Command for Training Candidate Model
+def Features(StrategyID):
+        Command = "python 10-code/10-runners/400-train.py --mode training --strategy-id strat_" + StrategyID
+        return Command
+
+#------------------------------------------------------------------------------
+# Generate Powershell Command for Backtest Candidate Model
+def Features(StrategyID):
+        Command = "python 10-code/10-runners/500-backtest.py --strategy-id strat_" + StrategyID
+        return Command
+
+#------------------------------------------------------------------------------
+# Generate Powershell Command for Evaluating Candidate Model
+def Features(StrategyID):
+        Command = "python 10-code/10-runners/600-evaluate.py --strategy-id strat_" + StrategyID
+        return Command
+
+#------------------------------------------------------------------------------
+# Generate Powershell Command for Verifying Candidate Model
+def Features(StrategyID):
+        Command = "python 10-code/10-runners/700-verify.py --strategy-id strat_" + StrategyID
+        return Command
+
+#------------------------------------------------------------------------------
+# Generate Powershell Command for Promoting Candidate Model
+def Features(StrategyID):
+        Command = "python 10-code/10-runners/800-promote.py --strategy-id strat_" + StrategyID
+        return Command
 
 
 #------------------------------------------------------------------------------
@@ -92,6 +150,7 @@ class TabView(ctk.CTkTabview):
         self.add(AnalysisTab)
 
         self.set(IngestDataTab)
+        # self.set(ModelsTab)
 
         # Setup Sections
         Project_frame = ctk.CTkFrame(master=self.tab(ProjectTab))
@@ -100,6 +159,9 @@ class TabView(ctk.CTkTabview):
         Analysis_frame = ctk.CTkFrame(master=self.tab(AnalysisTab))
 
         # Setup Sub Sections
+        IngestTrain_frame = ctk.CTkFrame(master=self.tab(IngestDataTab))
+        IngestBacktest_frame = ctk.CTkFrame(master=self.tab(IngestDataTab))
+
         Features_frame = ctk.CTkFrame(master=Models_frame)
         Labels_frame = ctk.CTkFrame(master=Models_frame)
         Train_frame = ctk.CTkFrame(master=Models_frame)
@@ -131,41 +193,50 @@ class TabView(ctk.CTkTabview):
 
 
     # Configure Sub Sections
+        IngestTrain_frame.place(x=10, y=70)
+        IngestTrain_frame.configure(width = 500, height = 600)
+        IngestTrain_frame.configure(fg_color=("#872B9E"))
+        IngestTrain_frame.update_idletasks()
+
+        IngestBacktest_frame.place(x=round(IngestTrain_frame.winfo_x() / PixScale) + round(IngestTrain_frame.winfo_width() / PixScale) + 10, y=round(IngestTrain_frame.winfo_y() / PixScale))
+        IngestBacktest_frame.configure(width = round(IngestTrain_frame.winfo_width() / PixScale), height = round(IngestTrain_frame.winfo_height() / PixScale))
+        IngestBacktest_frame.configure(fg_color=("#872B9E"))
+        IngestBacktest_frame.update_idletasks()
+    
+
         Features_frame.place(x=10, y=70)
-        Features_frame.configure(width = 370, height = 300)
-        Features_frame.configure(fg_color=("#2B719E"))
+        Features_frame.configure(width = 250, height = 300)
+        Features_frame.configure(fg_color=("#872B9E"))
         Features_frame.update_idletasks()
 
-        print(Features_frame.winfo_x() + Features_frame.winfo_width() + 10)
-        Labels_frame.place(x=Features_frame.winfo_x() + Features_frame.winfo_width() + 10, y=Features_frame.winfo_y())
-        Labels_frame.configure(width = 370, height = 300)
-        Labels_frame.configure(fg_color=("#2B719E"))
+        Labels_frame.place(x=round(Features_frame.winfo_x() / PixScale) + round(Features_frame.winfo_width() / PixScale) + 10, y=round(Features_frame.winfo_y() / PixScale))
+        Labels_frame.configure(width = 250, height = 300)
+        Labels_frame.configure(fg_color=("#872B9E"))
         Labels_frame.update_idletasks()
 
-        print(Labels_frame.winfo_x() + Labels_frame.winfo_width() + 10)
-        Train_frame.place(x=Labels_frame.winfo_x() + Labels_frame.winfo_width() + 10, y=Labels_frame.winfo_y())
-        Train_frame.configure(width = 370, height = 300)
-        Train_frame.configure(fg_color=("#2B719E"))
+        Train_frame.place(x=round(Labels_frame.winfo_x() / PixScale) + round(Labels_frame.winfo_width() / PixScale) + 10, y=round(Labels_frame.winfo_y() / PixScale))
+        Train_frame.configure(width = 250, height = 300)
+        Train_frame.configure(fg_color=("#872B9E"))
         Train_frame.update_idletasks()
 
-        Backtest_frame.place(x=Train_frame.winfo_x() + Train_frame.winfo_width() + 10, y=Train_frame.winfo_y())
-        Backtest_frame.configure(width = 370, height = 300)
-        Backtest_frame.configure(fg_color=("#2B719E"))
+        Backtest_frame.place(x=round(Train_frame.winfo_x() / PixScale) + round(Train_frame.winfo_width() / PixScale) + 10, y=round(Train_frame.winfo_y() / PixScale))
+        Backtest_frame.configure(width = 250, height = 300)
+        Backtest_frame.configure(fg_color=("#872B9E"))
         Backtest_frame.update_idletasks()
 
-        Evaluate_frame.place(x=Backtest_frame.winfo_x() + Backtest_frame.winfo_width() + 10, y=Backtest_frame.winfo_y())
-        Evaluate_frame.configure(width = 370, height = 300)
-        Evaluate_frame.configure(fg_color=("#2B719E"))
+        Evaluate_frame.place(x=round(Backtest_frame.winfo_x() / PixScale) + round(Backtest_frame.winfo_width() / PixScale) + 10, y=round(Backtest_frame.winfo_y() / PixScale))
+        Evaluate_frame.configure(width = 250, height = 300)
+        Evaluate_frame.configure(fg_color=("#872B9E"))
         Evaluate_frame.update_idletasks()
 
-        Verify_frame.place(x=Evaluate_frame.winfo_x() + Evaluate_frame.winfo_width() + 10, y=Evaluate_frame.winfo_y())
-        Verify_frame.configure(width = 370, height = 300)
-        Verify_frame.configure(fg_color=("#2B719E"))
+        Verify_frame.place(x=round(Evaluate_frame.winfo_x() / PixScale) + round(Evaluate_frame.winfo_width() / PixScale) + 10, y=round(Evaluate_frame.winfo_y() / PixScale))
+        Verify_frame.configure(width = 250, height = 300)
+        Verify_frame.configure(fg_color=("#872B9E"))
         Verify_frame.update_idletasks()
 
-        Promote_frame.place(x=Verify_frame.winfo_x() + Verify_frame.winfo_width() + 10, y=Verify_frame.winfo_y())
-        Promote_frame.configure(width = 370, height = 300)
-        Promote_frame.configure(fg_color=("#2B719E"))
+        Promote_frame.place(x=round(Verify_frame.winfo_x() / PixScale) + round(Verify_frame.winfo_width() / PixScale) + 10, y=round(Verify_frame.winfo_y() / PixScale))
+        Promote_frame.configure(width = 250, height = 300)
+        Promote_frame.configure(fg_color=("#872B9E"))
         Promote_frame.update_idletasks()
 
 
@@ -176,13 +247,16 @@ class TabView(ctk.CTkTabview):
         AnalysisTitle_label = ctk.CTkLabel(master=Analysis_frame, text="Analysis", font=("Calibri", 35))
 
         # Sub Sections Title
+        IngestTrainTitle_label = ctk.CTkLabel(master=IngestTrain_frame, text="Ingest Train Data", font=("Calibri", 35))
+        IngestBacktestTitle_label = ctk.CTkLabel(master=IngestBacktest_frame, text="Ingest Backtest Data", font=("Calibri", 35))
+
         FeaturesTitle_label = ctk.CTkLabel(master=Features_frame, text="Features", font=("Calibri", 35))
         LabelsTitle_label = ctk.CTkLabel(master=Labels_frame, text="Labels", font=("Calibri", 35))
-        TrainTitle_label = ctk.CTkLabel(master=Labels_frame, text="Train", font=("Calibri", 35))
-        BacktestTitle_label = ctk.CTkLabel(master=Labels_frame, text="Backtest Candidate", font=("Calibri", 35))
-        EvaluateTitle_label = ctk.CTkLabel(master=Labels_frame, text="Evaluate Candidate", font=("Calibri", 35))
-        VerifyTitle_label = ctk.CTkLabel(master=Labels_frame, text="Verify Candidate", font=("Calibri", 35))
-        PromoteTitle_label = ctk.CTkLabel(master=Labels_frame, text="Promote Candidate", font=("Calibri", 35))
+        TrainTitle_label = ctk.CTkLabel(master=Train_frame, text="Train Candidate", font=("Calibri", 35))
+        BacktestTitle_label = ctk.CTkLabel(master=Backtest_frame, text="Backtest Candidate", font=("Calibri", 35))
+        EvaluateTitle_label = ctk.CTkLabel(master=Evaluate_frame, text="Evaluate Candidate", font=("Calibri", 35))
+        VerifyTitle_label = ctk.CTkLabel(master=Verify_frame, text="Verify Candidate", font=("Calibri", 35))
+        PromoteTitle_label = ctk.CTkLabel(master=Promote_frame, text="Promote Candidate", font=("Calibri", 35))
 
         
         Title_x = 10
@@ -195,6 +269,9 @@ class TabView(ctk.CTkTabview):
         AnalysisTitle_label.place(x=Title_x, y=Title_y)
 
         # Sub Sections Title Location
+        IngestTrainTitle_label.place(x=Title_x, y=Title_y)
+        IngestBacktestTitle_label.place(x=Title_x, y=Title_y)
+
         FeaturesTitle_label.place(x=Title_x, y=Title_y)
         LabelsTitle_label.place(x=Title_x, y=Title_y)
         TrainTitle_label.place(x=Title_x, y=Title_y)
@@ -202,6 +279,17 @@ class TabView(ctk.CTkTabview):
         EvaluateTitle_label.place(x=Title_x, y=Title_y)
         VerifyTitle_label.place(x=Title_x, y=Title_y)
         PromoteTitle_label.place(x=Title_x, y=Title_y)
+
+
+        # https://www.geeksforgeeks.org/python/create-a-date-picker-calendar-tkinter/
+        # Add Calendar
+        YearNow = int(time.strftime("%Y"))
+        MonthNow = int(time.strftime("%m"))
+        DayNow = int(time.strftime("%d"))
+
+        IngestTrainCalendar = Calendar(master=IngestTrain_frame, selectmode = 'day', year = YearNow, month = MonthNow, day = DayNow)
+        IngestTrainCalendar.configure(font=("Calibri", 20))
+        IngestTrainCalendar.place(x=25, y=200)
 
 
 
