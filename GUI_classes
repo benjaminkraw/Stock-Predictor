@@ -12,6 +12,8 @@ import time                                 # Current Time
 
 import numpy as np                          # Math
 
+import subprocess                           # Allows for running Windows PC commands
+
 from screeninfo import get_monitors         # Connected Monitor information
 
 from os import listdir                      # Access base drives of local PC
@@ -66,8 +68,7 @@ def DisplayCoords(self, WindowWidth, WindowHeight):
 
         Monitor2_to_screen_scaling = Monitor2Width / ScreenWidth
 
-        global PixScale 
-        PixScale = Monitor2_to_screen_scaling
+        global PixScale; PixScale = Monitor2_to_screen_scaling
 
         WindowsTaskbarHeight = 48
 
@@ -76,6 +77,54 @@ def DisplayCoords(self, WindowWidth, WindowHeight):
         Window_y = (Monitor2Height/2) - ((WindowHeight * Monitor2_to_screen_scaling) / 2) - WindowsTaskbarHeight    
 
         return Window_x, Window_y
+
+#------------------------------------------------------------------------------
+# Given a Number return Month String
+def ConvertNumtoMonth(MonthNumber):
+    if MonthNumber == 1:
+        return "January"
+    elif MonthNumber == 2:
+        return "February"
+    elif MonthNumber == 3:
+        return "March"
+    elif MonthNumber == 4:
+        return "April"
+    elif MonthNumber == 5:
+        return "May"
+    elif MonthNumber == 6:
+        return "June"
+    elif MonthNumber == 7:
+        return "July"
+    elif MonthNumber == 8:
+        return "August"
+    elif MonthNumber == 9:
+        return "September"
+    elif MonthNumber == 10:
+        return "October"
+    elif MonthNumber == 11:
+        return "November"
+    elif MonthNumber == 12:
+        return "December"
+    
+#------------------------------------------------------------------------------
+# Given a Listbox and Directory, Update Listbox 
+def UpdateFileListbox(Listbox, Directory):
+    # Clear Listbox
+    Listbox.delete(0, tk.END)
+
+    # Query all files stored in Directory with specific file type
+    Files = [f for f in listdir(Directory) if f.endswith('.parquet')]
+    
+    # Insert each File into Listbox
+    for File in Files:
+        Listbox.insert(tk.END, File)
+
+#------------------------------------------------------------------------------
+# Given a Data from TKinter Calendar, return parsed date 
+def ParseCalendarDate(CalendarDate):
+    ParsedCalendarDate = CalendarDate.split("/")
+    return ParsedCalendarDate
+
 
 #------------------------------------------------------------------------------
 # Generate Powershell Command for Ingest Training Data
@@ -97,37 +146,37 @@ def Features(Date, StrategyID):
 
 #------------------------------------------------------------------------------
 # Generate Powershell Command for Applying Labels to Backtest Data
-def Features(Date, StrategyID):
+def Labels(Date, StrategyID):
         Command = "python 10-code/10-runners/300-label.py --model-type candidate -m backtest -d " + Date + " --strategy-id strat_" + StrategyID
         return Command
 
 #------------------------------------------------------------------------------
 # Generate Powershell Command for Training Candidate Model
-def Features(StrategyID):
+def Train(StrategyID):
         Command = "python 10-code/10-runners/400-train.py --mode training --strategy-id strat_" + StrategyID
         return Command
 
 #------------------------------------------------------------------------------
 # Generate Powershell Command for Backtest Candidate Model
-def Features(StrategyID):
+def Backtest(StrategyID):
         Command = "python 10-code/10-runners/500-backtest.py --strategy-id strat_" + StrategyID
         return Command
 
 #------------------------------------------------------------------------------
 # Generate Powershell Command for Evaluating Candidate Model
-def Features(StrategyID):
+def Evaluate(StrategyID):
         Command = "python 10-code/10-runners/600-evaluate.py --strategy-id strat_" + StrategyID
         return Command
 
 #------------------------------------------------------------------------------
 # Generate Powershell Command for Verifying Candidate Model
-def Features(StrategyID):
+def Verify(StrategyID):
         Command = "python 10-code/10-runners/700-verify.py --strategy-id strat_" + StrategyID
         return Command
 
 #------------------------------------------------------------------------------
 # Generate Powershell Command for Promoting Candidate Model
-def Features(StrategyID):
+def Promote(StrategyID):
         Command = "python 10-code/10-runners/800-promote.py --strategy-id strat_" + StrategyID
         return Command
 
@@ -149,8 +198,8 @@ class TabView(ctk.CTkTabview):
         self.add(ModelsTab)
         self.add(AnalysisTab)
 
-        self.set(IngestDataTab)
-        # self.set(ModelsTab)
+        # self.set(IngestDataTab)
+        self.set(ModelsTab)
 
         # Setup Sections
         Project_frame = ctk.CTkFrame(master=self.tab(ProjectTab))
@@ -174,89 +223,97 @@ class TabView(ctk.CTkTabview):
         # Configure Sections
         SectionWidth = MainWindowWidth - (4 * 10)
         SectionHeight = MainWindowHeight - (4 * 10) - HeaderHeight - 50
+        SectionColor = "#31424D"
 
         Project_frame.place(x=0, y=0)
         Project_frame.configure(width = SectionWidth, height = SectionHeight)
-        Project_frame.configure(fg_color=("#2B719E"))
+        Project_frame.configure(fg_color=(SectionColor))
 
         Ingest_frame.place(x=0, y=0)
         Ingest_frame.configure(width = SectionWidth, height = SectionHeight)
-        Ingest_frame.configure(fg_color=("#2B719E"))
+        Ingest_frame.configure(fg_color=(SectionColor))
 
         Models_frame.place(x=0, y=0)
         Models_frame.configure(width = SectionWidth, height = SectionHeight)
-        Models_frame.configure(fg_color=("#2B719E"))
+        Models_frame.configure(fg_color=(SectionColor))
 
         Analysis_frame.place(x=0, y=0)
         Analysis_frame.configure(width = SectionWidth, height = SectionHeight)
-        Analysis_frame.configure(fg_color=("#2B719E"))
+        Analysis_frame.configure(fg_color=(SectionColor))
 
 
-    # Configure Sub Sections
+        # Configure Sub Sections
+        SubSectionColor = "#3E5B6D"
+
         IngestTrain_frame.place(x=10, y=70)
-        IngestTrain_frame.configure(width = 500, height = 600)
-        IngestTrain_frame.configure(fg_color=("#872B9E"))
+        IngestTrain_frame.configure(width = 650, height = 700)
+        IngestTrain_frame.configure(fg_color=(SubSectionColor))
         IngestTrain_frame.update_idletasks()
 
         IngestBacktest_frame.place(x=round(IngestTrain_frame.winfo_x() / PixScale) + round(IngestTrain_frame.winfo_width() / PixScale) + 10, y=round(IngestTrain_frame.winfo_y() / PixScale))
         IngestBacktest_frame.configure(width = round(IngestTrain_frame.winfo_width() / PixScale), height = round(IngestTrain_frame.winfo_height() / PixScale))
-        IngestBacktest_frame.configure(fg_color=("#872B9E"))
+        IngestBacktest_frame.configure(fg_color=(SubSectionColor))
         IngestBacktest_frame.update_idletasks()
     
 
         Features_frame.place(x=10, y=70)
         Features_frame.configure(width = 250, height = 300)
-        Features_frame.configure(fg_color=("#872B9E"))
+        Features_frame.configure(fg_color=(SubSectionColor))
         Features_frame.update_idletasks()
 
         Labels_frame.place(x=round(Features_frame.winfo_x() / PixScale) + round(Features_frame.winfo_width() / PixScale) + 10, y=round(Features_frame.winfo_y() / PixScale))
         Labels_frame.configure(width = 250, height = 300)
-        Labels_frame.configure(fg_color=("#872B9E"))
+        Labels_frame.configure(fg_color=(SubSectionColor))
         Labels_frame.update_idletasks()
 
         Train_frame.place(x=round(Labels_frame.winfo_x() / PixScale) + round(Labels_frame.winfo_width() / PixScale) + 10, y=round(Labels_frame.winfo_y() / PixScale))
         Train_frame.configure(width = 250, height = 300)
-        Train_frame.configure(fg_color=("#872B9E"))
+        Train_frame.configure(fg_color=(SubSectionColor))
         Train_frame.update_idletasks()
 
         Backtest_frame.place(x=round(Train_frame.winfo_x() / PixScale) + round(Train_frame.winfo_width() / PixScale) + 10, y=round(Train_frame.winfo_y() / PixScale))
         Backtest_frame.configure(width = 250, height = 300)
-        Backtest_frame.configure(fg_color=("#872B9E"))
+        Backtest_frame.configure(fg_color=(SubSectionColor))
         Backtest_frame.update_idletasks()
 
         Evaluate_frame.place(x=round(Backtest_frame.winfo_x() / PixScale) + round(Backtest_frame.winfo_width() / PixScale) + 10, y=round(Backtest_frame.winfo_y() / PixScale))
         Evaluate_frame.configure(width = 250, height = 300)
-        Evaluate_frame.configure(fg_color=("#872B9E"))
+        Evaluate_frame.configure(fg_color=(SubSectionColor))
         Evaluate_frame.update_idletasks()
 
         Verify_frame.place(x=round(Evaluate_frame.winfo_x() / PixScale) + round(Evaluate_frame.winfo_width() / PixScale) + 10, y=round(Evaluate_frame.winfo_y() / PixScale))
         Verify_frame.configure(width = 250, height = 300)
-        Verify_frame.configure(fg_color=("#872B9E"))
+        Verify_frame.configure(fg_color=(SubSectionColor))
         Verify_frame.update_idletasks()
 
         Promote_frame.place(x=round(Verify_frame.winfo_x() / PixScale) + round(Verify_frame.winfo_width() / PixScale) + 10, y=round(Verify_frame.winfo_y() / PixScale))
         Promote_frame.configure(width = 250, height = 300)
-        Promote_frame.configure(fg_color=("#872B9E"))
+        Promote_frame.configure(fg_color=(SubSectionColor))
         Promote_frame.update_idletasks()
 
 
         # Sections Title
-        ProjectTitle_label = ctk.CTkLabel(master=Project_frame, text="Project", font=("Calibri", 35))
-        IngestTitle_label = ctk.CTkLabel(master=Ingest_frame, text="Ingest Data", font=("Calibri", 35))
-        ModelsTitle_label = ctk.CTkLabel(master=Models_frame, text="Models", font=("Calibri", 35))
-        AnalysisTitle_label = ctk.CTkLabel(master=Analysis_frame, text="Analysis", font=("Calibri", 35))
+        SectionFontSize = 35
+
+        ProjectTitle_label = ctk.CTkLabel(master=Project_frame, text="Project", font=("Calibri", SectionFontSize))
+        IngestTitle_label = ctk.CTkLabel(master=Ingest_frame, text="Ingest Data", font=("Calibri", SectionFontSize))
+        ModelsTitle_label = ctk.CTkLabel(master=Models_frame, text="Models", font=("Calibri", SectionFontSize))
+        AnalysisTitle_label = ctk.CTkLabel(master=Analysis_frame, text="Analysis", font=("Calibri", SectionFontSize))
+
 
         # Sub Sections Title
-        IngestTrainTitle_label = ctk.CTkLabel(master=IngestTrain_frame, text="Ingest Train Data", font=("Calibri", 35))
-        IngestBacktestTitle_label = ctk.CTkLabel(master=IngestBacktest_frame, text="Ingest Backtest Data", font=("Calibri", 35))
+        SubSectionFontSize = 28
 
-        FeaturesTitle_label = ctk.CTkLabel(master=Features_frame, text="Features", font=("Calibri", 35))
-        LabelsTitle_label = ctk.CTkLabel(master=Labels_frame, text="Labels", font=("Calibri", 35))
-        TrainTitle_label = ctk.CTkLabel(master=Train_frame, text="Train Candidate", font=("Calibri", 35))
-        BacktestTitle_label = ctk.CTkLabel(master=Backtest_frame, text="Backtest Candidate", font=("Calibri", 35))
-        EvaluateTitle_label = ctk.CTkLabel(master=Evaluate_frame, text="Evaluate Candidate", font=("Calibri", 35))
-        VerifyTitle_label = ctk.CTkLabel(master=Verify_frame, text="Verify Candidate", font=("Calibri", 35))
-        PromoteTitle_label = ctk.CTkLabel(master=Promote_frame, text="Promote Candidate", font=("Calibri", 35))
+        IngestTrainTitle_label = ctk.CTkLabel(master=IngestTrain_frame, text="Training Data", font=("Calibri", SubSectionFontSize))
+        IngestBacktestTitle_label = ctk.CTkLabel(master=IngestBacktest_frame, text="Backtest Data", font=("Calibri", SubSectionFontSize))
+
+        FeaturesTitle_label = ctk.CTkLabel(master=Features_frame, text="Features", font=("Calibri", SubSectionFontSize))
+        LabelsTitle_label = ctk.CTkLabel(master=Labels_frame, text="Labels", font=("Calibri", SubSectionFontSize))
+        TrainTitle_label = ctk.CTkLabel(master=Train_frame, text="Train Candidate", font=("Calibri", SubSectionFontSize))
+        BacktestTitle_label = ctk.CTkLabel(master=Backtest_frame, text="Backtest Candidate", font=("Calibri", SubSectionFontSize))
+        EvaluateTitle_label = ctk.CTkLabel(master=Evaluate_frame, text="Evaluate Candidate", font=("Calibri", SubSectionFontSize))
+        VerifyTitle_label = ctk.CTkLabel(master=Verify_frame, text="Verify Candidate", font=("Calibri", SubSectionFontSize))
+        PromoteTitle_label = ctk.CTkLabel(master=Promote_frame, text="Promote Candidate", font=("Calibri", SubSectionFontSize))
 
         
         Title_x = 10
@@ -281,16 +338,281 @@ class TabView(ctk.CTkTabview):
         PromoteTitle_label.place(x=Title_x, y=Title_y)
 
 
+        # Add Widgets to respective Tabs
+        self.ProjectWidgets(Project_frame)
+        self.IngestWidgets(IngestTrain_frame, IngestBacktest_frame)
+        self.ModelsWidgets(Features_frame, Labels_frame, Train_frame, Backtest_frame, Evaluate_frame, Verify_frame, Promote_frame)
+        self.AnalysisWidgets(Analysis_frame)
+
+
+    
+
+    # Define Widgets for Project Tab
+    def ProjectWidgets(self, Project_frame):
+        global ProjectDirectory; ProjectDirectory = "C:/Users/Benjamin/Documents/DarwinAI/v3.2"
+        global IngestTrainingDirectory; IngestTrainingDirectory = ProjectDirectory + str("/20-data/100-ingest/40-training/ibkr")
+        global IngestBacktestDirectory; IngestBacktestDirectory = ProjectDirectory + str("/20-data/100-ingest/50-backtest/ibkr")
+
+        
+        def SetProjectDirectory():
+            # File Directory for Project
+            global ProjectDirectory
+            # global ProjectDirectory_label
+
+            # Request from user Project Directory
+            ProjectDirectory = ctk.filedialog.askdirectory(initialdir=ProjectDirectory)
+
+            # Update label
+            ProjectDirectory_label.configure(text=ProjectDirectory)
+
+        def SetTrainingDirectory():
+            # File Directory for Training
+            global IngestTrainingDirectory
+            # global TrainingDirectory_label
+
+            # Request from user Training Directory
+            TrainingDirectory = ctk.filedialog.askdirectory(initialdir=IngestTrainingDirectory)
+
+            # Update label
+            TrainingDirectory_label.configure(text=TrainingDirectory)
+
+
+        def SetBacktestDirectory():
+            # File Directory for Backtest
+            global IngestBacktestDirectory
+            # global BacktestDirectory_label
+
+            # Request from user Backtest Directory
+            BacktestDirectory = ctk.filedialog.askdirectory(initialdir=IngestBacktestDirectory)
+
+            # Update label
+            BacktestDirectory_label.configure(text=BacktestDirectory)
+
+
+        SetDirectoryButton_width = 200
+
+        # Project Directory Button
+        ProjectDirectory_button = ctk.CTkButton(master=Project_frame, text="Set Project Directory", command=SetProjectDirectory)
+        ProjectDirectory_button.place(x=10, y=75)
+        ProjectDirectory_button.configure(width=SetDirectoryButton_width, height=25)
+
+        # Training Directory Button
+        TrainingDirectory_button = ctk.CTkButton(master=Project_frame, text="Set Training Data Directory", command=SetTrainingDirectory)
+        TrainingDirectory_button.place(x=10, y=105)
+        TrainingDirectory_button.configure(width=SetDirectoryButton_width, height=25)
+
+        # Backtest Directory Button
+        BacktestDirectory_button = ctk.CTkButton(master=Project_frame, text="Set Backtest Data Directory", command=SetBacktestDirectory)
+        BacktestDirectory_button.place(x=10, y=135)
+        BacktestDirectory_button.configure(width=SetDirectoryButton_width, height=25)
+
+
+        DirectoryLabelText_x = 250
+
+        # Project Directory Text
+        ProjectDirectoryText_label = ctk.CTkLabel(master=Project_frame, text="Project Directory:")
+        ProjectDirectoryText_label.place(x=DirectoryLabelText_x, y=75)
+
+        # Training Directory Text
+        TrainingDirectoryText_label = ctk.CTkLabel(master=Project_frame, text="Training Data Directory:")
+        TrainingDirectoryText_label.place(x=DirectoryLabelText_x, y=105)
+
+        # Backtest Directory Text
+        BacktestDirectoryText_label = ctk.CTkLabel(master=Project_frame, text="Backtest Data Directory:")
+        BacktestDirectoryText_label.place(x=DirectoryLabelText_x, y=135)
+
+
+        DirectoryText_x = 430
+        DirectoryText_fgcolor = "#181C1E"
+
+        # Project Directory
+        ProjectDirectory_label = ctk.CTkLabel(master=Project_frame, text=ProjectDirectory)
+        ProjectDirectory_label.place(x=DirectoryText_x, y=75)
+        ProjectDirectory_label.configure(fg_color=DirectoryText_fgcolor)
+
+        # Training Directory
+        TrainingDirectory_label = ctk.CTkLabel(master=Project_frame, text=IngestTrainingDirectory)
+        TrainingDirectory_label.place(x=DirectoryText_x, y=105)
+        TrainingDirectory_label.configure(fg_color=DirectoryText_fgcolor)
+
+        # Backtest Directory
+        BacktestDirectory_label = ctk.CTkLabel(master=Project_frame, text=IngestBacktestDirectory)
+        BacktestDirectory_label.place(x=DirectoryText_x, y=135)
+        BacktestDirectory_label.configure(fg_color=DirectoryText_fgcolor)
+
+          
+    # Define Widgets for Ingest Tab
+    def IngestWidgets(self, IngestTrain_frame, IngestBacktest_frame):
+        global IngestTrainingDirectory
+        global IngestBacktestDirectory
+
+        IngestTrainWidgets = IngestSection(IngestTrain_frame, "Train", IngestTrainingDirectory)
+        IngestBacktestWidgets = IngestSection(IngestBacktest_frame, "Backtest", IngestBacktestDirectory)
+
+    # Define Widgets for Models Tab
+    def ModelsWidgets(self, Features_frame, Labels_frame,  Train_frame, Backtest_frame, Evaluate_frame, Verify_frame, Promote_frame):
+          pass
+    
+    # Define Widgets for Analysis Tab
+    def AnalysisWidgets(self, Analysis_frame):
+          pass
+
+
+#------------------------------------------------------------------------------
+# Class to Populate Widgets given a Frame for Ingesting Data
+class IngestSection():
+    def __init__(self, Frame, IngestDataType, Directory):
+        super().__init__()
+   
         # https://www.geeksforgeeks.org/python/create-a-date-picker-calendar-tkinter/
         # Add Calendar
         YearNow = int(time.strftime("%Y"))
         MonthNow = int(time.strftime("%m"))
         DayNow = int(time.strftime("%d"))
 
-        IngestTrainCalendar = Calendar(master=IngestTrain_frame, selectmode = 'day', year = YearNow, month = MonthNow, day = DayNow)
-        IngestTrainCalendar.configure(font=("Calibri", 20))
-        IngestTrainCalendar.place(x=25, y=200)
+        calendar = Calendar(master=Frame, selectmode = 'day', year = YearNow, month = MonthNow, day = DayNow)
+        calendar.configure(font=("Calibri", 18))
+        calendar.place(x=25, y=200)
 
+        # Define Date Arrays
+        BeginDate = np.empty(shape=(1, 3), dtype='object')
+        EndDate = np.empty(shape=(1, 3), dtype='object')
+
+        # Begin Date Text
+        BeginDate_label = ctk.CTkLabel(master=Frame, text=IngestDataType + " Begin Date")
+        BeginDate_label.place(x=350, y=90)
+        BeginDate_label.configure(width=150, height=25)
+
+        # End Date Text
+        EndDate_label = ctk.CTkLabel(master=Frame, text=IngestDataType + " End Date")
+        EndDate_label.place(x=350, y=110)
+
+        #-------------------
+        # Ingest Begin Date
+        def SetBeginDate():
+            BeginDate_calendar = calendar.get_date()
+            BeginDate_parsed = ParseCalendarDate(BeginDate_calendar)
+
+            BeginDate_month = BeginDate_parsed[0]
+            BeginDate_day = BeginDate_parsed[1]
+            BeginDate_year = "20" + BeginDate_parsed[2]
+
+            BeginDate[0][0] = BeginDate_year
+            BeginDate[0][1] = BeginDate_month
+            BeginDate[0][2] = BeginDate_day
+
+            BeginDate_text = IngestDataType + " Begin Date: " + ConvertNumtoMonth(int(BeginDate[0][1])) + " " + BeginDate[0][2] + ", " + BeginDate[0][0]
+            BeginDate_label.configure(text = str(BeginDate_text))
+
+        def SetEndDate():
+            EndDate_calendar = calendar.get_date()
+            EndDate_parsed = ParseCalendarDate(EndDate_calendar)
+
+            EndDate_month = EndDate_parsed[0]
+            EndDate_day = EndDate_parsed[1]
+            EndDate_year = "20" + EndDate_parsed[2]
+
+            EndDate[0][0] = EndDate_year
+            EndDate[0][1] = EndDate_month
+            EndDate[0][2] = EndDate_day
+            
+            EndDate_text = IngestDataType + " End Date:    " + ConvertNumtoMonth(int(EndDate[0][1])) + " " + EndDate[0][2] + ", " + EndDate[0][0]
+            EndDate_label.configure(text = str(EndDate_text))
+
+        def DataAck():
+            app.popup = ctk.CTkToplevel()
+            app.popup.wm_title(IngestDataType + " Data")
+
+            # Popup Dimensions
+            PopupWidth = 400
+            PopupHeight = 100
+
+            # Calculate Popup x and y coordinates
+            Popup_x, Popup_y = DisplayCoords(app.popup, PopupWidth, PopupHeight)
+
+            # Set Popup Dimensions and location
+            app.popup.geometry('%dx%d+%d+%d' % (PopupWidth, PopupHeight, Popup_x,Popup_y))
+
+            app.popup.grid_columnconfigure((0, 1, 2, 3), weight=1)
+            app.popup.grid_rowconfigure((0, 1, 2, 3, 4), weight=1)
+
+            Ack_label = ctk.CTkLabel(master=app.popup, text="Are you sure you want to Ingest " + IngestDataType + " Data from:")
+            Ack_label.grid(row=0, column=0, columnspan=4)
+
+            AckBegin_label = ctk.CTkLabel(master=app.popup, text="Begin: " + BeginDate[0][0] + "/" + BeginDate[0][1] + "/" + BeginDate[0][2])
+            AckBegin_label.grid(row=1, column=1)
+
+            AckEnd_label = ctk.CTkLabel(master=app.popup, text="End: " + EndDate[0][0] + "/" + EndDate[0][1] + "/" + EndDate[0][2])
+            AckEnd_label.grid(row=1, column=3)
+
+            Yes_button = ctk.CTkButton(master=app.popup, text="Yes", command=Data)
+            Yes_button.grid(row=4, column=1)
+
+            No_button = ctk.CTkButton(master=app.popup, text="No", command=app.popup.destroy)
+            No_button.grid(row=4, column=3)
+
+            # Make Popup stay ontop
+            app.popup.transient(app.popup.master)
+
+            # Hijack all commands from master, clicks on main window are ignored
+            app.popup.grab_set()
+
+        def Data():
+            # Close Popup
+            app.popup.destroy()
+
+            EndDate_year = EndDate[0][0]
+            EndDate_month = EndDate[0][1]
+            EndDate_day = EndDate[0][2]
+            EndDate_date = EndDate_year + EndDate_month + EndDate_day
+
+            print("Ingesting " +  IngestDataType + " Data")
+            subprocess.run(["powershell", "-c", "python 10-code/10-runners/100-ingest.py -m training -d" + EndDate_date])
+
+            UpdateFileListbox(MES_listbox, Directory)
+
+        # MES Listbox Text
+        MES_listbox_label = ctk.CTkLabel(master=Frame, text="MES " + IngestDataType + " Data")
+        MES_listbox_label.place(x=120, y=310)
+        MES_listbox_label.configure(font=("Calibri", 18))
+
+        # MNQ Listbox Text
+        MNQ_listbox_label = ctk.CTkLabel(master=Frame, text="MNQ " + IngestDataType + " Data")
+        MNQ_listbox_label.place(x=420, y=310)
+        MNQ_listbox_label.configure(font=("Calibri", 18))
+
+
+        # Files Listbox
+        MES_listbox = tk.Listbox(master=Frame, width = 40, height = 15)
+        MES_listbox.place(x=75, y=600)
+        MES_listbox.configure(font=("Calibri", 18))
+
+        MNQ_listbox = tk.Listbox(master=Frame, width = 40, height = 15)
+        MNQ_listbox.place(x=600, y=600)
+        MNQ_listbox.configure(font=("Calibri", 18))
+
+        # Update Listbox with files from Directory
+        UpdateFileListbox(MES_listbox, Directory + "/MES/1m")
+        UpdateFileListbox(MNQ_listbox, Directory + "/MNQ/1m")
+
+        # Begin Date Button
+        BeginDate_button = ctk.CTkButton(master=Frame, text="Set " + IngestDataType + " Begin Date", command=SetBeginDate)
+        BeginDate_button.place(x=285, y=55)
+        BeginDate_button.configure(width=150, height=25)
+
+        # End Date Button
+        EndDate_button = ctk.CTkButton(master=Frame, text="Set " + IngestDataType + " End Date", command=SetEndDate)
+        EndDate_button.place(x=445, y=55)
+        EndDate_button.configure(width=150, height=25)
+
+        # Data Button
+        Data_button = ctk.CTkButton(master=Frame, text="Ingest " + IngestDataType + " Data", command=DataAck)
+        Data_button.place(x=360, y=145)
+        Data_button.configure(width=150, height=25)
+
+        # Call to initiate dates on startup
+        SetBeginDate()
+        SetEndDate()
 
 
 
@@ -307,11 +629,9 @@ class App(ctk.CTk):
 
         #------------------------------------------------------------------------------
         # Main Window Dimensions
-        global MainWindowWidth
-        MainWindowWidth = 1920
+        global MainWindowWidth; MainWindowWidth = 1920
 
-        global MainWindowHeight
-        MainWindowHeight = 1080
+        global MainWindowHeight; MainWindowHeight = 1080
 
         # Calculate Main Window x and y coordinates
         MainWindow_x, MainWindow_y = DisplayCoords(self, MainWindowWidth, MainWindowHeight)
@@ -326,8 +646,7 @@ class App(ctk.CTk):
 
         HeaderWidth = MainWindowWidth
 
-        global HeaderHeight
-        HeaderHeight = 70
+        global HeaderHeight; HeaderHeight = 70
 
         # Create Window Header
         self.Header(HeaderWidth, HeaderHeight)
@@ -395,13 +714,11 @@ class App(ctk.CTk):
         Credits_label.place(x=45, y=40)
 
         # Current Date
-        global Date_label
-        Date_label = ctk.CTkLabel(master=Title_frame, text="Date", font=("Calibri", 20))
+        global Date_label; Date_label = ctk.CTkLabel(master=Title_frame, text="Date", font=("Calibri", 20))
         Date_label.place(x=750, y=10)
 
         # Current Time
-        global Clock_label
-        Clock_label = ctk.CTkLabel(master=Title_frame, text="Time", font=("Calibri", 20))
+        global Clock_label; Clock_label = ctk.CTkLabel(master=Title_frame, text="Time", font=("Calibri", 20))
         Clock_label.place(x=750, y=35)
 
 
@@ -410,5 +727,5 @@ class App(ctk.CTk):
 app = App()
 
 # Run Application
-app.after(3000, lambda: app.destroy())
+# app.after(3000, lambda: app.destroy())
 app.mainloop()
