@@ -256,38 +256,42 @@ class TabView(ctk.CTkTabview):
         IngestBacktest_frame.update_idletasks()
     
 
+        ModelSubSectionWidth = 350
+        ModelSubSectionHeight = 415
+
         Features_frame.place(x=10, y=70)
-        Features_frame.configure(width = 250, height = 300)
+        Features_frame.configure(width = ModelSubSectionWidth, height = ModelSubSectionHeight)
         Features_frame.configure(fg_color=(SubSectionColor))
         Features_frame.update_idletasks()
 
         Labels_frame.place(x=round(Features_frame.winfo_x() / PixScale) + round(Features_frame.winfo_width() / PixScale) + 10, y=round(Features_frame.winfo_y() / PixScale))
-        Labels_frame.configure(width = 250, height = 300)
+        Labels_frame.configure(width = ModelSubSectionWidth, height = ModelSubSectionHeight)
         Labels_frame.configure(fg_color=(SubSectionColor))
         Labels_frame.update_idletasks()
 
-        Train_frame.place(x=round(Labels_frame.winfo_x() / PixScale) + round(Labels_frame.winfo_width() / PixScale) + 10, y=round(Labels_frame.winfo_y() / PixScale))
-        Train_frame.configure(width = 250, height = 300)
+
+        Train_frame.place(x=round(Features_frame.winfo_x() / PixScale), y=round(Features_frame.winfo_y() / PixScale) + round(Features_frame.winfo_height() / PixScale) + 10)
+        Train_frame.configure(width = ModelSubSectionWidth, height = ModelSubSectionHeight)
         Train_frame.configure(fg_color=(SubSectionColor))
         Train_frame.update_idletasks()
 
         Backtest_frame.place(x=round(Train_frame.winfo_x() / PixScale) + round(Train_frame.winfo_width() / PixScale) + 10, y=round(Train_frame.winfo_y() / PixScale))
-        Backtest_frame.configure(width = 250, height = 300)
+        Backtest_frame.configure(width = ModelSubSectionWidth, height = ModelSubSectionHeight)
         Backtest_frame.configure(fg_color=(SubSectionColor))
         Backtest_frame.update_idletasks()
 
         Evaluate_frame.place(x=round(Backtest_frame.winfo_x() / PixScale) + round(Backtest_frame.winfo_width() / PixScale) + 10, y=round(Backtest_frame.winfo_y() / PixScale))
-        Evaluate_frame.configure(width = 250, height = 300)
+        Evaluate_frame.configure(width = ModelSubSectionWidth, height = ModelSubSectionHeight)
         Evaluate_frame.configure(fg_color=(SubSectionColor))
         Evaluate_frame.update_idletasks()
 
         Verify_frame.place(x=round(Evaluate_frame.winfo_x() / PixScale) + round(Evaluate_frame.winfo_width() / PixScale) + 10, y=round(Evaluate_frame.winfo_y() / PixScale))
-        Verify_frame.configure(width = 250, height = 300)
+        Verify_frame.configure(width = ModelSubSectionWidth, height = ModelSubSectionHeight)
         Verify_frame.configure(fg_color=(SubSectionColor))
         Verify_frame.update_idletasks()
 
         Promote_frame.place(x=round(Verify_frame.winfo_x() / PixScale) + round(Verify_frame.winfo_width() / PixScale) + 10, y=round(Verify_frame.winfo_y() / PixScale))
-        Promote_frame.configure(width = 250, height = 300)
+        Promote_frame.configure(width = ModelSubSectionWidth, height = ModelSubSectionHeight)
         Promote_frame.configure(fg_color=(SubSectionColor))
         Promote_frame.update_idletasks()
 
@@ -352,6 +356,14 @@ class TabView(ctk.CTkTabview):
         global ProjectDirectory; ProjectDirectory = "C:/Users/Benjamin/Documents/DarwinAI/v3.2"
         global IngestTrainingDirectory; IngestTrainingDirectory = ProjectDirectory + str("/20-data/100-ingest/40-training/ibkr")
         global IngestBacktestDirectory; IngestBacktestDirectory = ProjectDirectory + str("/20-data/100-ingest/50-backtest/ibkr")
+
+        global FeaturesDirectory; FeaturesDirectory = ProjectDirectory + str("/20-data/400-models/candidate")
+        global LabelsDirectory; LabelsDirectory = ProjectDirectory + str("/20-data/400-models/candidate")
+        global TrainDirectory; TrainDirectory = ProjectDirectory + str("/20-data/400-models/candidate")
+        global BacktestDirectory; BacktestDirectory = ProjectDirectory + str("/20-data/400-models/candidate")
+        global EvaluateDirectory; EvaluateDirectory = ProjectDirectory + str("/20-data/400-models/candidate")
+        global VerifyDirectory; VerifyDirectory = ProjectDirectory + str("/20-data/400-models/candidate")
+        global PromoteDirectory; PromoteDirectory = ProjectDirectory + str("/20-data/400-models/candidate")
 
         
         def SetProjectDirectory():
@@ -450,12 +462,27 @@ class TabView(ctk.CTkTabview):
         IngestBacktestWidgets = IngestSection(IngestBacktest_frame, "Backtest", IngestBacktestDirectory)
 
     # Define Widgets for Models Tab
-    def ModelsWidgets(self, Features_frame, Labels_frame,  Train_frame, Backtest_frame, Evaluate_frame, Verify_frame, Promote_frame):
-          pass
+    def ModelsWidgets(self, Features_frame, Labels_frame, Train_frame, Backtest_frame, Evaluate_frame, Verify_frame, Promote_frame):
+        global FeaturesDirectory
+        global LabelsDirectory
+        global TrainDirectory
+        global BacktestDirectory
+        global EvaluateDirectory
+        global VerifyDirectory
+        global PromoteDirectory
+
+        FeaturesWidgets = ModelSection(Features_frame, "Features", FeaturesDirectory)
+        LabelsWidgets = ModelSection(Labels_frame, "Labels", LabelsDirectory)
+        TrainWidgets = ModelSection(Train_frame, "Train", TrainDirectory)
+        BacktestWidgets = ModelSection(Backtest_frame, "Backtest", BacktestDirectory)
+        EvaluateWidgets = ModelSection(Evaluate_frame, "Evaluate", EvaluateDirectory)
+        VerifyWidgets = ModelSection(Verify_frame, "Verify", VerifyDirectory)
+        PromoteWidgets = ModelSection(Promote_frame, "Promote", PromoteDirectory)
+
     
     # Define Widgets for Analysis Tab
     def AnalysisWidgets(self, Analysis_frame):
-          pass
+        pass
 
 
 #------------------------------------------------------------------------------
@@ -567,7 +594,11 @@ class IngestSection():
             EndDate_date = EndDate_year + EndDate_month + EndDate_day
 
             print("Ingesting " +  IngestDataType + " Data")
-            subprocess.run(["powershell", "-c", "python 10-code/10-runners/100-ingest.py -m training -d" + EndDate_date])
+
+            if (IngestDataType == "Training"):
+                subprocess.run(["powershell", "-c", IngestTraining(EndDate_date)])
+            elif (IngestDataType == "Backtest"):
+                subprocess.run(["powershell", "-c", IngestBacktest(EndDate_date)])
 
             UpdateFileListbox(MES_listbox, Directory)
 
@@ -614,6 +645,100 @@ class IngestSection():
         SetBeginDate()
         SetEndDate()
 
+
+#------------------------------------------------------------------------------
+# Class to Populate Widgets given a Frame for Models
+class ModelSection():
+    def __init__(self, Frame, ModelDataType, Directory):
+        super().__init__()
+
+        # Set Strategy ID text
+        SetStratgetyIDText_label = ctk.CTkLabel(master=Frame, text="Set Strategy ID:")
+        SetStratgetyIDText_label.place(x=20, y=50)
+
+        # Strategy ID Entry
+        StrategyIDEntry = ctk.CTkEntry(Frame, placeholder_text="1")
+        StrategyIDEntry.place(x=120, y=50)
+        StrategyIDEntry.configure(width=100)
+
+        StrategyID = StrategyIDEntry.get()
+        StrategyID = "0000" + StrategyID
+
+        if (ModelDataType == "Features"):
+            ModelElementDirectory = Directory + "/strat" + StrategyID + "/10b/20-features/MNQ/1m/50-backtest"
+        elif (ModelDataType == "Labels"):
+            ModelElementDirectory = Directory + "/strat" + StrategyID + "/10b/30-labels/MNQ/1m/50-backtest"
+        elif (ModelDataType == "Train"):
+            ModelElementDirectory = Directory + "/strat" + StrategyID + ""
+        elif (ModelDataType == "Backtest"):
+            ModelElementDirectory = Directory + "/strat" + StrategyID + ""
+        elif (ModelDataType == "Evaluate"):
+            ModelElementDirectory = Directory + "/strat" + StrategyID + ""
+        elif (ModelDataType == "Verify"):
+            ModelElementDirectory = Directory + "/strat" + StrategyID + ""
+        elif (ModelDataType == "Promote"):
+            ModelElementDirectory = Directory + "/strat" + StrategyID + ""
+
+        # StrategyID Files Listbox
+        StrategyIDCommand_listbox = tk.Listbox(Frame, width = 40, height = 15)
+        StrategyIDCommand_listbox.place(x=100, y=220)
+        StrategyIDCommand_listbox.configure(font=("Calibri", 18))
+        
+
+        def CandidateCommandAck():
+            app.popup = ctk.CTkToplevel()
+            app.popup.wm_title(ModelDataType + " Candidate")
+
+            # Popup Dimensions
+            PopupWidth = 400
+            PopupHeight = 100
+
+            # Calculate Popup x and y coordinates
+            Popup_x, Popup_y = DisplayCoords(app.popup, PopupWidth, PopupHeight)
+
+            # Set Popup Dimensions and location
+            app.popup.geometry('%dx%d+%d+%d' % (PopupWidth, PopupHeight, Popup_x,Popup_y))
+
+            app.popup.grid_columnconfigure((0, 1, 2, 3), weight=1)
+            app.popup.grid_rowconfigure((0, 1, 2, 3, 4), weight=1)
+
+            Ack_label = ctk.CTkLabel(master=app.popup, text="Are you sure you want to " + ModelDataType + " this Model:")
+            Ack_label.grid(row=0, column=0, columnspan=4)
+
+            AckBegin_label = ctk.CTkLabel(master=app.popup, text="Strategy ID: " + StrategyID)
+            AckBegin_label.grid(row=1, column=1)
+
+
+            Yes_button = ctk.CTkButton(master=app.popup, text="Yes", command=CandiateCommand)
+            Yes_button.grid(row=4, column=1)
+
+            No_button = ctk.CTkButton(master=app.popup, text="No", command=app.popup.destroy)
+            No_button.grid(row=4, column=3)
+
+            # Make Popup stay ontop
+            app.popup.transient(app.popup.master)
+
+            # Hijack all commands from master, clicks on main window are ignored
+            app.popup.grab_set()
+
+        def CandiateCommand():
+            # Close Popup
+            app.popup.destroy()
+
+            StrategyID = StrategyIDEntry.get()
+            StrategyID = "0000" + StrategyID
+
+            print("Apply Features to Backtest Data")
+            subprocess.run(["powershell", "-c", "python 10-code/10-runners/200-feature.py --model-type candidate -m backtest -d " + " --strategy-id strat_" + StrategyID])
+
+            StrategyIDFeaturesDirectory = ProjectDirectory + str("/20-data/400-models/candidate/strat_0000" + StrategyID + "/10b/20-features/MNQ/1m/50-backtest")
+
+            UpdateFileListbox(StrategyIDCommand_listbox, ModelElementDirectory)
+
+        # Features Data Button
+        FeaturesData_button = ctk.CTkButton(master=Frame, text="Apply " + ModelDataType + " to Candidate Model", command=CandidateCommandAck)
+        FeaturesData_button.place(x=70, y=90)
+        FeaturesData_button.configure(width=150, height=25)
 
 
 #------------------------------------------------------------------------------
