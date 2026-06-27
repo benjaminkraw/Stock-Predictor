@@ -58,15 +58,17 @@ def DisplayCoords(self, WindowWidth, WindowHeight):
         Monitor1Width = int(monitors[0,2])
         Monitor1Height = int(monitors[0,3])
 
-        Monitor2Width = int(monitors[1,2])
-        Monitor2Height = int(monitors[0,3])
+        if (num_monitors > 1):
+            Monitor2Width = int(monitors[1,2])
+            Monitor2Height = int(monitors[0,3])
 
         # Screen Dimensions (Determines Microsoft Windows Scaling)
         ScreenWidth = self.winfo_screenwidth()
         ScreenHeight = self.winfo_screenheight()
 
         Monitor1_to_screen_scaling = Monitor1Width / ScreenWidth
-        Monitor2_to_screen_scaling = Monitor2Width / ScreenWidth
+        if (num_monitors > 1):
+            Monitor2_to_screen_scaling = Monitor2Width / ScreenWidth
 
         global PixScale
 
@@ -114,12 +116,12 @@ def ConvertNumtoMonth(MonthNumber):
     
 #------------------------------------------------------------------------------
 # Given a Listbox and Directory, Update Listbox 
-def UpdateFileListbox(Listbox, Directory):
+def UpdateFileListbox(Listbox, Directory, FileType):
     # Clear Listbox
     Listbox.delete(0, tk.END)
 
     # Query all files stored in Directory with specific file type
-    Files = [f for f in listdir(Directory) if f.endswith('.parquet')]
+    Files = [f for f in listdir(Directory) if f.endswith(FileType)]
     
     # Insert each File into Listbox
     for File in Files:
@@ -241,7 +243,7 @@ class TabView(ctk.CTkTabview):
         self.add(ModelsTab)
         self.add(AnalysisTab)
 
-        self.set(ProjectTab)
+        self.set(ModelsTab)
 
         # Setup Sections
         Project_frame = ctk.CTkFrame(master=self.tab(ProjectTab))
@@ -423,9 +425,27 @@ class TabView(ctk.CTkTabview):
             elif (DirectoryName == "Ingest Training"):
                 global IngestTrainingDirectory
                 IngestTrainingDirectory = Directory
-            elif (DirectoryName == "Ingest Backtest"):
-                global IngestBacktestDirectory
-                IngestBacktestDirectory = Directory
+            elif (DirectoryName == "Features"):
+                global FeaturesDirectory
+                FeaturesDirectory = Directory
+            elif (DirectoryName == "Labels"):
+                global LabelsDirectory
+                LabelsDirectory = Directory
+            elif (DirectoryName == "Train"):
+                global TrainDirectory
+                TrainDirectory = Directory
+            elif (DirectoryName == "Backtest"):
+                global BacktestDirectory
+                BacktestDirectory = Directory
+            elif (DirectoryName == "Evaluate"):
+                global EvaluateDirectory
+                EvaluateDirectory = Directory
+            elif (DirectoryName == "Verify"):
+                global VerifyDirectory
+                VerifyDirectory = Directory
+            elif (DirectoryName == "Promote"):
+                global PromoteDirectory
+                PromoteDirectory = Directory
           
 
 
@@ -450,6 +470,7 @@ class TabView(ctk.CTkTabview):
         IngestBacktestDirectory_label.configure(fg_color=DirectoryText_fgcolor)
         
         
+
         SetDirectoryButton_width = 200
 
         # Subprocess Test Button
@@ -672,8 +693,8 @@ class IngestSection():
         MNQ_listbox.configure(font=("Calibri", 18))
 
         # Update Listbox with files from Directory
-        UpdateFileListbox(MES_listbox, Directory + "/MES/1m")
-        UpdateFileListbox(MNQ_listbox, Directory + "/MNQ/1m")
+        UpdateFileListbox(MES_listbox, Directory + "/MES/1m", ".parquet")
+        UpdateFileListbox(MNQ_listbox, Directory + "/MNQ/1m", ".parquet")
 
         # Begin Date Button
         BeginDate_button = ctk.CTkButton(master=Frame, text="Set " + IngestDataType + " Begin Date", command=SetBeginDate)
@@ -701,13 +722,21 @@ class ModelSectionData():
     def __init__(self, Frame, ModelDataType, Directory):
         super().__init__()
 
+        # Strategy IDs Listbox
+        StrategyIDs_listbox = tk.Listbox(Frame, width = 45, height = 6)
+        StrategyIDs_listbox.place(x=30, y=100)
+        StrategyIDs_listbox.configure(font=("Calibri", 18))
+
+        # Update Listbox with files from Directory
+        UpdateFileListbox(StrategyIDs_listbox, Directory, "")
+
         # Set Strategy ID text
         SetStratgetyIDText_label = ctk.CTkLabel(master=Frame, text="Set Strategy ID:")
-        SetStratgetyIDText_label.place(x=20, y=50)
+        SetStratgetyIDText_label.place(x=20, y=180)
 
         # Strategy ID Entry
         StrategyIDEntry = ctk.CTkEntry(Frame, placeholder_text="Strategy ID")
-        StrategyIDEntry.place(x=120, y=50)
+        StrategyIDEntry.place(x=120, y=180)
         StrategyIDEntry.configure(width=100)
         StrategyIDEntry.insert(0, "1")
 
@@ -715,17 +744,17 @@ class ModelSectionData():
         StrategyID = "0000" + StrategyID
 
         if (ModelDataType == "Features"):
-            ModelElementDirectory = Directory + "/strat" + StrategyID + ""
+            ModelElementDirectory = Directory + "/strat_" + StrategyID + "/10b/20-features/MNQ/1m/50-backtest"
         elif (ModelDataType == "Labels"):
-            ModelElementDirectory = Directory + "/strat" + StrategyID + ""
+            ModelElementDirectory = Directory + "/strat_" + StrategyID + "/10b/30-labels/MNQ/1m//10b/50-backtest"
 
-        # StrategyID Files Listbox
-        StrategyIDData_listbox = tk.Listbox(Frame, width = 40, height = 15)
-        StrategyIDData_listbox.place(x=100, y=220)
-        StrategyIDData_listbox.configure(font=("Calibri", 18))
+        # Model Element Data Files Listbox
+        ModelElementData_listbox = tk.Listbox(Frame, width = 45, height = 6)
+        ModelElementData_listbox.place(x=30, y=450)
+        ModelElementData_listbox.configure(font=("Calibri", 18))
 
         # Update Listbox with files from Directory
-        # UpdateFileListbox(StrategyIDData_listbox, ModelElementDirectory + "/MNQ/1m")
+        UpdateFileListbox(ModelElementData_listbox, ModelElementDirectory, ".parquet")
         
 
         def DataCommandAck():
@@ -775,11 +804,11 @@ class ModelSectionData():
 
             StrategyIDFeaturesDirectory = ProjectDirectory + str("/20-data/400-models/candidate/strat_0000" + StrategyID + "/10b/20-features/MNQ/1m/50-backtest")
 
-            UpdateFileListbox(StrategyIDData_listbox, ModelElementDirectory)
+            UpdateFileListbox(ModelElementData_listbox, ModelElementDirectory, ".parquet")
 
         # Data Button
         CandidateCommand_button = ctk.CTkButton(master=Frame, text="Apply " + ModelDataType + " to Backtest Data", command=DataCommandAck)
-        CandidateCommand_button.place(x=70, y=90)
+        CandidateCommand_button.place(x=70, y=220)
         CandidateCommand_button.configure(width=150, height=25)
 
 
@@ -987,5 +1016,5 @@ class App(ctk.CTk):
 app = App()
 
 # Run Application
-# app.after(3000, lambda: app.destroy())
+app.after(3000, lambda: app.destroy())
 app.mainloop()
