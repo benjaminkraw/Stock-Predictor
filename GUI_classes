@@ -13,6 +13,7 @@ import time                                 # Current Time
 import numpy as np                          # Math
 
 import subprocess                           # Allows for running Windows PC commands
+import threading                            # Allows for threading of subprocess
 
 from screeninfo import get_monitors         # Connected Monitor information
 
@@ -65,17 +66,22 @@ def DisplayCoords(self, WindowWidth, WindowHeight):
         ScreenHeight = self.winfo_screenheight()
 
         Monitor1_to_screen_scaling = Monitor1Width / ScreenWidth
-
         Monitor2_to_screen_scaling = Monitor2Width / ScreenWidth
 
-        global PixScale; PixScale = Monitor2_to_screen_scaling
+        global PixScale
 
         WindowsTaskbarHeight = 48
+        num_monitors = 1
 
         # Calculate x and y coordinates for Window
-        Window_x = (Monitor2Width/2) - ((WindowWidth * Monitor2_to_screen_scaling) / 2) + Monitor1Width
-        Window_y = (Monitor2Height/2) - ((WindowHeight * Monitor2_to_screen_scaling) / 2) - WindowsTaskbarHeight    
-
+        if (num_monitors == 1):
+            PixScale = Monitor1_to_screen_scaling
+            Window_x = (Monitor1Width/2) - ((WindowWidth * PixScale) / 2)
+            Window_y = (Monitor1Height/2) - ((WindowHeight * PixScale) / 2) - WindowsTaskbarHeight    
+        else:
+            MonitorScaling = Monitor2_to_screen_scaling
+            Window_x = (Monitor2Width/2) - ((WindowWidth * PixScale) / 2) + Monitor1Width
+            Window_y = (Monitor2Height/2) - ((WindowHeight * PixScale) / 2) - WindowsTaskbarHeight  
         return Window_x, Window_y
 
 #------------------------------------------------------------------------------
@@ -180,6 +186,43 @@ def Promote(StrategyID):
         Command = "python 10-code/10-runners/800-promote.py --strategy-id strat_" + StrategyID
         return Command
 
+# Given a Button and Subprocess Terminal Command, start Thread
+def run_terminal_command(master, Button, Command):
+    # Change Cursor to busy state
+    master.configure(cursor="watch")
+
+    # Disable button to avoid multiple clicks
+    Button.configure(state="disabled")
+
+    # Run Thread
+    thread = threading.Thread(target=execute_subprocess(master, Button, Command))
+    thread.start()
+
+# Given a Button and Subprocess Terminal Command, execute Command
+def execute_subprocess(master, Button, Command):
+    # Execute Subprocess Terminal Command
+    try:
+        # subprocess.run(["ping", "-c", "4", "8.8.8.8"], check=True)
+        # subprocess.run(["powershell", "-c", "python 10-code/10-runners/100-ingest.py -m training -d " + "20260615"])
+        print("Sleeping")
+        time.sleep(4)
+        pass
+    except Exception as e:
+        print(f"Error: {e}")
+    finally:
+        master.after(0, reset_GUI(master, Button))
+    pass
+
+# Given a Button, reset state
+def reset_GUI(master, Button):
+    # Reset State of Cursor
+    master.configure(cursor="")
+
+    # Reset State of Button
+    Button.configure(state="normal")
+    print("Awake")
+          
+
 
 #------------------------------------------------------------------------------
 # Class to Generate Tab View
@@ -198,8 +241,7 @@ class TabView(ctk.CTkTabview):
         self.add(ModelsTab)
         self.add(AnalysisTab)
 
-        # self.set(IngestDataTab)
-        self.set(ModelsTab)
+        self.set(ProjectTab)
 
         # Setup Sections
         Project_frame = ctk.CTkFrame(master=self.tab(ProjectTab))
@@ -343,7 +385,7 @@ class TabView(ctk.CTkTabview):
 
 
         # Add Widgets to respective Tabs
-        self.ProjectWidgets(Project_frame)
+        self.ProjectWidgets(master, Project_frame)
         self.IngestWidgets(IngestTrain_frame, IngestBacktest_frame)
         self.ModelsWidgets(Features_frame, Labels_frame, Train_frame, Backtest_frame, Evaluate_frame, Verify_frame, Promote_frame)
         self.AnalysisWidgets(Analysis_frame)
@@ -352,7 +394,7 @@ class TabView(ctk.CTkTabview):
     
 
     # Define Widgets for Project Tab
-    def ProjectWidgets(self, Project_frame):
+    def ProjectWidgets(self, master, Project_frame):
         global ProjectDirectory; ProjectDirectory = "C:/Users/Benjamin/Documents/DarwinAI/v3.2"
         global IngestTrainingDirectory; IngestTrainingDirectory = ProjectDirectory + str("/20-data/100-ingest/40-training/ibkr")
         global IngestBacktestDirectory; IngestBacktestDirectory = ProjectDirectory + str("/20-data/100-ingest/50-backtest/ibkr")
@@ -365,75 +407,30 @@ class TabView(ctk.CTkTabview):
         global VerifyDirectory; VerifyDirectory = ProjectDirectory + str("/20-data/400-models/candidate")
         global PromoteDirectory; PromoteDirectory = ProjectDirectory + str("/20-data/400-models/candidate")
 
+
+
+        # Given a Directory Name, Directory, and Label, request from User Directory and update Directory and Label
+        def SetDirectory(DirectoryName, Directory, Label):
+            # Request from user Directory
+            Directory = ctk.filedialog.askdirectory(initialdir=Directory)
+
+            # Update label
+            Label.configure(text=Directory)
+
+            if (DirectoryName == "Project"):
+                global ProjectDirectory
+                ProjectDirectory = Directory
+            elif (DirectoryName == "Ingest Training"):
+                global IngestTrainingDirectory
+                IngestTrainingDirectory = Directory
+            elif (DirectoryName == "Ingest Backtest"):
+                global IngestBacktestDirectory
+                IngestBacktestDirectory = Directory
+          
+
+
         
-        def SetProjectDirectory():
-            # File Directory for Project
-            global ProjectDirectory
-            # global ProjectDirectory_label
-
-            # Request from user Project Directory
-            ProjectDirectory = ctk.filedialog.askdirectory(initialdir=ProjectDirectory)
-
-            # Update label
-            ProjectDirectory_label.configure(text=ProjectDirectory)
-
-        def SetTrainingDirectory():
-            # File Directory for Training
-            global IngestTrainingDirectory
-            # global TrainingDirectory_label
-
-            # Request from user Training Directory
-            TrainingDirectory = ctk.filedialog.askdirectory(initialdir=IngestTrainingDirectory)
-
-            # Update label
-            TrainingDirectory_label.configure(text=TrainingDirectory)
-
-
-        def SetBacktestDirectory():
-            # File Directory for Backtest
-            global IngestBacktestDirectory
-            # global BacktestDirectory_label
-
-            # Request from user Backtest Directory
-            BacktestDirectory = ctk.filedialog.askdirectory(initialdir=IngestBacktestDirectory)
-
-            # Update label
-            BacktestDirectory_label.configure(text=BacktestDirectory)
-
-
-        SetDirectoryButton_width = 200
-
-        # Project Directory Button
-        ProjectDirectory_button = ctk.CTkButton(master=Project_frame, text="Set Project Directory", command=SetProjectDirectory)
-        ProjectDirectory_button.place(x=10, y=75)
-        ProjectDirectory_button.configure(width=SetDirectoryButton_width, height=25)
-
-        # Training Directory Button
-        TrainingDirectory_button = ctk.CTkButton(master=Project_frame, text="Set Training Data Directory", command=SetTrainingDirectory)
-        TrainingDirectory_button.place(x=10, y=105)
-        TrainingDirectory_button.configure(width=SetDirectoryButton_width, height=25)
-
-        # Backtest Directory Button
-        BacktestDirectory_button = ctk.CTkButton(master=Project_frame, text="Set Backtest Data Directory", command=SetBacktestDirectory)
-        BacktestDirectory_button.place(x=10, y=135)
-        BacktestDirectory_button.configure(width=SetDirectoryButton_width, height=25)
-
-
-        DirectoryLabelText_x = 250
-
-        # Project Directory Text
-        ProjectDirectoryText_label = ctk.CTkLabel(master=Project_frame, text="Project Directory:")
-        ProjectDirectoryText_label.place(x=DirectoryLabelText_x, y=75)
-
-        # Training Directory Text
-        TrainingDirectoryText_label = ctk.CTkLabel(master=Project_frame, text="Training Data Directory:")
-        TrainingDirectoryText_label.place(x=DirectoryLabelText_x, y=105)
-
-        # Backtest Directory Text
-        BacktestDirectoryText_label = ctk.CTkLabel(master=Project_frame, text="Backtest Data Directory:")
-        BacktestDirectoryText_label.place(x=DirectoryLabelText_x, y=135)
-
-
+        
         DirectoryText_x = 430
         DirectoryText_fgcolor = "#181C1E"
 
@@ -442,15 +439,60 @@ class TabView(ctk.CTkTabview):
         ProjectDirectory_label.place(x=DirectoryText_x, y=75)
         ProjectDirectory_label.configure(fg_color=DirectoryText_fgcolor)
 
-        # Training Directory
-        TrainingDirectory_label = ctk.CTkLabel(master=Project_frame, text=IngestTrainingDirectory)
-        TrainingDirectory_label.place(x=DirectoryText_x, y=105)
-        TrainingDirectory_label.configure(fg_color=DirectoryText_fgcolor)
+        # Ingest Training Directory
+        IngestTrainingDirectory_label = ctk.CTkLabel(master=Project_frame, text=IngestTrainingDirectory)
+        IngestTrainingDirectory_label.place(x=DirectoryText_x, y=105)
+        IngestTrainingDirectory_label.configure(fg_color=DirectoryText_fgcolor)
 
-        # Backtest Directory
-        BacktestDirectory_label = ctk.CTkLabel(master=Project_frame, text=IngestBacktestDirectory)
-        BacktestDirectory_label.place(x=DirectoryText_x, y=135)
-        BacktestDirectory_label.configure(fg_color=DirectoryText_fgcolor)
+        # Ingest Backtest Directory
+        IngestBacktestDirectory_label = ctk.CTkLabel(master=Project_frame, text=IngestBacktestDirectory)
+        IngestBacktestDirectory_label.place(x=DirectoryText_x, y=135)
+        IngestBacktestDirectory_label.configure(fg_color=DirectoryText_fgcolor)
+        
+        
+        SetDirectoryButton_width = 200
+
+        # Subprocess Test Button
+        SubprocessTest_button = ctk.CTkButton(master=Project_frame, text="Subprocess Test")
+        # SubprocessTest_button.configure(command=run_terminal_command(master, SubprocessTest_button, ""))
+        SubprocessTest_button.configure(command=run_terminal_command)
+        SubprocessTest_button.place(x=300, y=300)
+        SubprocessTest_button.configure(width=SetDirectoryButton_width, height=25)
+
+
+        # Project Directory Button
+        ProjectDirectory_button = ctk.CTkButton(master=Project_frame, text="Set Project Directory", command=lambda: SetDirectory("Project", ProjectDirectory, ProjectDirectory_label))
+        ProjectDirectory_button.place(x=10, y=75)
+        ProjectDirectory_button.configure(width=SetDirectoryButton_width, height=25)
+
+        # Ingest Training Directory Button
+        IngestTrainingDirectory_button = ctk.CTkButton(master=Project_frame, text="Set Ingest Training Directory", command=lambda: SetDirectory("Ingest Training", IngestTrainingDirectory, IngestTrainingDirectory_label))
+        IngestTrainingDirectory_button.place(x=10, y=105)
+        IngestTrainingDirectory_button.configure(width=SetDirectoryButton_width, height=25)
+
+        # Ingest Backtest Directory Button
+        IngestBacktestDirectory_button = ctk.CTkButton(master=Project_frame, text="Set Ingest Backtest Directory", command=lambda: SetDirectory("Ingest Backtest", IngestBacktestDirectory, IngestBacktestDirectory_label))
+        IngestBacktestDirectory_button.place(x=10, y=135)
+        IngestBacktestDirectory_button.configure(width=SetDirectoryButton_width, height=25)
+
+
+
+
+        DirectoryLabelText_x = 250
+
+        # Project Directory Text
+        ProjectDirectoryText_label = ctk.CTkLabel(master=Project_frame, text="Project Directory:")
+        ProjectDirectoryText_label.place(x=DirectoryLabelText_x, y=75)
+
+        # Ingest Training Directory Text
+        IngestTrainingDirectoryText_label = ctk.CTkLabel(master=Project_frame, text="Ingest Training Directory:")
+        IngestTrainingDirectoryText_label.place(x=DirectoryLabelText_x, y=105)
+
+        # Ingest Backtest Directory Text
+        IngestBacktestDirectoryText_label = ctk.CTkLabel(master=Project_frame, text="Ingest Backtest Directory:")
+        IngestBacktestDirectoryText_label.place(x=DirectoryLabelText_x, y=135)
+
+        
 
           
     # Define Widgets for Ingest Tab
@@ -596,10 +638,16 @@ class IngestSection():
 
             print("Ingesting " +  IngestDataType + " Data")
 
-            if (IngestDataType == "Training"):
-                subprocess.run(["powershell", "-c", IngestTraining(EndDate_date)])
-            elif (IngestDataType == "Backtest"):
-                subprocess.run(["powershell", "-c", IngestBacktest(EndDate_date)])
+            app.config(cursor="watch")
+            app.update()
+            time.sleep(4)
+            app.config(cursor="")
+            app.update()
+
+            # if (IngestDataType == "Training"):
+            #     subprocess.run(["powershell", "-c", IngestTraining(EndDate_date)])
+            # elif (IngestDataType == "Backtest"):
+            #     subprocess.run(["powershell", "-c", IngestBacktest(EndDate_date)])
 
             UpdateFileListbox(MES_listbox, Directory)
 
@@ -658,9 +706,10 @@ class ModelSectionData():
         SetStratgetyIDText_label.place(x=20, y=50)
 
         # Strategy ID Entry
-        StrategyIDEntry = ctk.CTkEntry(Frame, placeholder_text="1")
+        StrategyIDEntry = ctk.CTkEntry(Frame, placeholder_text="Strategy ID")
         StrategyIDEntry.place(x=120, y=50)
         StrategyIDEntry.configure(width=100)
+        StrategyIDEntry.insert(0, "1")
 
         StrategyID = StrategyIDEntry.get()
         StrategyID = "0000" + StrategyID
@@ -676,7 +725,6 @@ class ModelSectionData():
         StrategyIDData_listbox.configure(font=("Calibri", 18))
 
         # Update Listbox with files from Directory
-        # UpdateFileListbox(StrategyIDData_listbox, ModelElementDirectory + "/MES/1m")
         # UpdateFileListbox(StrategyIDData_listbox, ModelElementDirectory + "/MNQ/1m")
         
 
@@ -746,9 +794,10 @@ class ModelSectionCandidate():
         SetStratgetyIDText_label.place(x=20, y=50)
 
         # Strategy ID Entry
-        StrategyIDEntry = ctk.CTkEntry(Frame, placeholder_text="1")
+        StrategyIDEntry = ctk.CTkEntry(Frame, placeholder_text="Strategy ID")
         StrategyIDEntry.place(x=120, y=50)
         StrategyIDEntry.configure(width=100)
+        StrategyIDEntry.insert(0, "1")
 
         StrategyID = StrategyIDEntry.get()
         StrategyID = "0000" + StrategyID
