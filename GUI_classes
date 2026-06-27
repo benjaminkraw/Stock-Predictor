@@ -807,9 +807,9 @@ class ModelSectionData():
             UpdateFileListbox(ModelElementData_listbox, ModelElementDirectory, ".parquet")
 
         # Data Button
-        CandidateCommand_button = ctk.CTkButton(master=Frame, text="Apply " + ModelDataType + " to Backtest Data", command=DataCommandAck)
-        CandidateCommand_button.place(x=70, y=220)
-        CandidateCommand_button.configure(width=150, height=25)
+        DataCommand_button = ctk.CTkButton(master=Frame, text="Apply " + ModelDataType + " to Backtest Data", command=DataCommandAck)
+        DataCommand_button.place(x=70, y=220)
+        DataCommand_button.configure(width=150, height=25)
 
 
 #------------------------------------------------------------------------------
@@ -818,13 +818,21 @@ class ModelSectionCandidate():
     def __init__(self, Frame, ModelDataType, Directory):
         super().__init__()
 
+        # Strategy IDs Listbox
+        StrategyIDs_listbox = tk.Listbox(Frame, width = 45, height = 6)
+        StrategyIDs_listbox.place(x=30, y=100)
+        StrategyIDs_listbox.configure(font=("Calibri", 18))
+
+        # Update Listbox with files from Directory
+        UpdateFileListbox(StrategyIDs_listbox, Directory, "")
+
         # Set Strategy ID text
         SetStratgetyIDText_label = ctk.CTkLabel(master=Frame, text="Set Strategy ID:")
-        SetStratgetyIDText_label.place(x=20, y=50)
+        SetStratgetyIDText_label.place(x=20, y=180)
 
         # Strategy ID Entry
         StrategyIDEntry = ctk.CTkEntry(Frame, placeholder_text="Strategy ID")
-        StrategyIDEntry.place(x=120, y=50)
+        StrategyIDEntry.place(x=120, y=180)
         StrategyIDEntry.configure(width=100)
         StrategyIDEntry.insert(0, "1")
 
@@ -843,8 +851,8 @@ class ModelSectionCandidate():
             ModelElementDirectory = Directory + "/strat" + StrategyID + ""
 
         # StrategyID Files Listbox
-        StrategyIDCommand_listbox = tk.Listbox(Frame, width = 40, height = 15)
-        StrategyIDCommand_listbox.place(x=100, y=220)
+        StrategyIDCommand_listbox = tk.Listbox(Frame, width = 45, height = 6)
+        StrategyIDCommand_listbox.place(x=30, y=450)
         StrategyIDCommand_listbox.configure(font=("Calibri", 18))
         
 
@@ -901,7 +909,7 @@ class ModelSectionCandidate():
 
         # Features Data Button
         CandidateCommand_button = ctk.CTkButton(master=Frame, text=ModelDataType + " this Candidate Model", command=CandidateCommandAck)
-        CandidateCommand_button.place(x=70, y=90)
+        CandidateCommand_button.place(x=70, y=220)
         CandidateCommand_button.configure(width=150, height=25)
 
 
@@ -1016,5 +1024,5 @@ class App(ctk.CTk):
 app = App()
 
 # Run Application
-app.after(3000, lambda: app.destroy())
+# app.after(3000, lambda: app.destroy())
 app.mainloop()
