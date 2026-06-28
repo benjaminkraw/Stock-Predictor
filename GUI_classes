@@ -126,6 +126,19 @@ def UpdateFileListbox(Listbox, Directory, FileType):
     # Insert each File into Listbox
     for File in Files:
         Listbox.insert(tk.END, File)
+    
+#------------------------------------------------------------------------------
+# Given a Combobox and Directory, Update Combobox 
+def UpdateFileCombobox(Combobox, Directory, FileType):
+    # Clear Combobox
+    Combobox.delete(0, tk.END)
+
+    # Query all files stored in Directory with specific file type
+    Files = [f for f in listdir(Directory) if f.endswith(FileType)]
+    
+    # Insert each File into Combobox
+    for File in Files:
+        Combobox.insert(tk.END, File)
 
 #------------------------------------------------------------------------------
 # Given a Data from TKinter Calendar, return parsed date 
@@ -752,6 +765,7 @@ class ModelSectionData():
         SetStratgetyIDText_label.place(x=20, y=180)
 
         def combobox_callback(choice):
+            UpdateFileCombobox(StrategyIDs_listbox, Directory, "")
             print("combobox dropdown clicked:", choice)
 
         combobox_var = ctk.StringVar(value="option 2")
