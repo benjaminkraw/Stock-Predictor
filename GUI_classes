@@ -223,6 +223,7 @@ def reset_GUI(master, Button):
     # Reset State of Button
     Button.configure(state="normal")
     print("Awake")
+     
           
 
 
@@ -672,14 +673,15 @@ class IngestSection():
 
             UpdateFileListbox(MES_listbox, Directory)
 
+
         # MES Listbox Text
         MES_listbox_label = ctk.CTkLabel(master=Frame, text="MES " + IngestDataType + " Data")
-        MES_listbox_label.place(x=120, y=310)
+        MES_listbox_label.place(x=45, y=310)
         MES_listbox_label.configure(font=("Calibri", 18))
 
         # MNQ Listbox Text
         MNQ_listbox_label = ctk.CTkLabel(master=Frame, text="MNQ " + IngestDataType + " Data")
-        MNQ_listbox_label.place(x=420, y=310)
+        MNQ_listbox_label.place(x=350, y=310)
         MNQ_listbox_label.configure(font=("Calibri", 18))
 
 
@@ -711,6 +713,16 @@ class IngestSection():
         Data_button.place(x=360, y=145)
         Data_button.configure(width=150, height=25)
 
+        # Refresh MES Listbox Button
+        RefreshMESListbox_button = ctk.CTkButton(master=Frame, text="Refresh", command= lambda: UpdateFileListbox(MES_listbox, Directory + "/MES/1m", ".parquet"))
+        RefreshMESListbox_button.place(x=250, y=315)
+        RefreshMESListbox_button.configure(width=70, height=25)
+
+        # Refresh MNQ Listbox Button
+        RefreshMESListbox_button = ctk.CTkButton(master=Frame, text="Refresh", command= lambda: UpdateFileListbox(MNQ_listbox, Directory + "/MNQ/1m", ".parquet"))
+        RefreshMESListbox_button.place(x=550, y=315)
+        RefreshMESListbox_button.configure(width=70, height=25)
+
         # Call to initiate dates on startup
         SetBeginDate()
         SetEndDate()
@@ -722,22 +734,35 @@ class ModelSectionData():
     def __init__(self, Frame, ModelDataType, Directory):
         super().__init__()
 
+        # Strategy Listbox Text
+        Strategy_listbox_label = ctk.CTkLabel(master=Frame, text="Strategies")
+        Strategy_listbox_label.place(x=25, y=40)
+        Strategy_listbox_label.configure(font=("Calibri", 18))
+        
         # Strategy IDs Listbox
-        StrategyIDs_listbox = tk.Listbox(Frame, width = 45, height = 6)
-        StrategyIDs_listbox.place(x=30, y=100)
+        StrategyIDs_listbox = tk.Listbox(Frame, width = 45, height = 4)
+        StrategyIDs_listbox.place(x=30, y=120)
         StrategyIDs_listbox.configure(font=("Calibri", 18))
 
         # Update Listbox with files from Directory
         UpdateFileListbox(StrategyIDs_listbox, Directory, "")
 
         # Set Strategy ID text
-        SetStratgetyIDText_label = ctk.CTkLabel(master=Frame, text="Set Strategy ID:")
+        SetStratgetyIDText_label = ctk.CTkLabel(master=Frame, text="Select Strategy:")
         SetStratgetyIDText_label.place(x=20, y=180)
+
+        def combobox_callback(choice):
+            print("combobox dropdown clicked:", choice)
+
+        combobox_var = ctk.StringVar(value="option 2")
+        combobox = ctk.CTkComboBox(Frame, values=["option 1", "option 2"], command=combobox_callback, variable=combobox_var)
+        combobox_var.set("option 2")
+        combobox.place(x=200, y=180)
 
         # Strategy ID Entry
         StrategyIDEntry = ctk.CTkEntry(Frame, placeholder_text="Strategy ID")
         StrategyIDEntry.place(x=120, y=180)
-        StrategyIDEntry.configure(width=100)
+        StrategyIDEntry.configure(width=50)
         StrategyIDEntry.insert(0, "1")
 
         StrategyID = StrategyIDEntry.get()
@@ -818,13 +843,20 @@ class ModelSectionCandidate():
     def __init__(self, Frame, ModelDataType, Directory):
         super().__init__()
 
+        # Strategy Listbox Text
+        Strategy_listbox_label = ctk.CTkLabel(master=Frame, text="Strategies")
+        Strategy_listbox_label.place(x=25, y=40)
+        Strategy_listbox_label.configure(font=("Calibri", 18))
+        
         # Strategy IDs Listbox
-        StrategyIDs_listbox = tk.Listbox(Frame, width = 45, height = 6)
-        StrategyIDs_listbox.place(x=30, y=100)
+        StrategyIDs_listbox = tk.Listbox(Frame, width = 45, height = 4)
+        StrategyIDs_listbox.place(x=30, y=120)
         StrategyIDs_listbox.configure(font=("Calibri", 18))
 
         # Update Listbox with files from Directory
         UpdateFileListbox(StrategyIDs_listbox, Directory, "")
+
+
 
         # Set Strategy ID text
         SetStratgetyIDText_label = ctk.CTkLabel(master=Frame, text="Set Strategy ID:")
