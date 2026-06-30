@@ -156,56 +156,56 @@ def ParseCalendarDate(CalendarDate):
 #------------------------------------------------------------------------------
 # Generate Powershell Command for Ingest Training Data
 def IngestTraining(Date):
-        Command = "python 10-code/10-runners/100-ingest.py -m training -d" + Date
-        return Command
+    Command = "python 10-code/10-runners/100-ingest.py -m training -d" + Date
+    return Command
 
 #------------------------------------------------------------------------------
 # Generate Powershell Command for Ingest Backtest Data
 def IngestBacktest(Date):
-        Command = "python 10-code/10-runners/100-ingest.py -m backtest -d" + Date
-        return Command
+    Command = "python 10-code/10-runners/100-ingest.py -m backtest -d" + Date
+    return Command
 
 #------------------------------------------------------------------------------
 # Generate Powershell Command for Applying Features to Backtest Data
-def Features(Date, StrategyID):
-        Command = "python 10-code/10-runners/200-feature.py --model-type candidate -m backtest -d " + Date + " --strategy-id strat_" + StrategyID
-        return Command
+def Features(StrategyID):
+    Command = "python 10-code/10-runners/200-feature.py --model-type candidate -m backtest --strategy-id " + StrategyID
+    return Command
 
 #------------------------------------------------------------------------------
 # Generate Powershell Command for Applying Labels to Backtest Data
-def Labels(Date, StrategyID):
-        Command = "python 10-code/10-runners/300-label.py --model-type candidate -m backtest -d " + Date + " --strategy-id strat_" + StrategyID
-        return Command
+def Labels(StrategyID):
+    Command = "python 10-code/10-runners/300-label.py --model-type candidate -m backtest --strategy-id " + StrategyID
+    return Command
 
 #------------------------------------------------------------------------------
 # Generate Powershell Command for Training Candidate Model
 def Train(StrategyID):
-        Command = "python 10-code/10-runners/400-train.py --mode training --strategy-id strat_" + StrategyID
-        return Command
+    Command = "python 10-code/10-runners/400-train.py --mode training --strategy-id " + StrategyID
+    return Command
 
 #------------------------------------------------------------------------------
 # Generate Powershell Command for Backtest Candidate Model
 def Backtest(StrategyID):
-        Command = "python 10-code/10-runners/500-backtest.py --strategy-id strat_" + StrategyID
-        return Command
+    Command = "python 10-code/10-runners/500-backtest.py --strategy-id " + StrategyID
+    return Command
 
 #------------------------------------------------------------------------------
 # Generate Powershell Command for Evaluating Candidate Model
 def Evaluate(StrategyID):
-        Command = "python 10-code/10-runners/600-evaluate.py --strategy-id strat_" + StrategyID
-        return Command
+    Command = "python 10-code/10-runners/600-evaluate.py --strategy-id " + StrategyID
+    return Command
 
 #------------------------------------------------------------------------------
 # Generate Powershell Command for Verifying Candidate Model
 def Verify(StrategyID):
-        Command = "python 10-code/10-runners/700-verify.py --strategy-id strat_" + StrategyID
-        return Command
+    Command = "python 10-code/10-runners/700-verify.py --strategy-id " + StrategyID
+    return Command
 
 #------------------------------------------------------------------------------
 # Generate Powershell Command for Promoting Candidate Model
 def Promote(StrategyID):
-        Command = "python 10-code/10-runners/800-promote.py --strategy-id strat_" + StrategyID
-        return Command
+    Command = "python 10-code/10-runners/800-promote.py --strategy-id " + StrategyID
+    return Command
 
 # Given a Button and Subprocess Terminal Command, start Thread
 def run_terminal_command(master, Button, Command):
@@ -409,7 +409,7 @@ class TabView(ctk.CTkTabview):
         # Add Widgets to respective Tabs
         self.ProjectWidgets(master, Project_frame)
         self.IngestWidgets(IngestTrain_frame, IngestBacktest_frame)
-        self.ModelsWidgets(Features_frame, Labels_frame, Train_frame, Backtest_frame, Evaluate_frame, Verify_frame, Promote_frame)
+        self.ModelsWidgets(master, Features_frame, Labels_frame, Train_frame, Backtest_frame, Evaluate_frame, Verify_frame, Promote_frame)
         self.AnalysisWidgets(Analysis_frame)
 
 
@@ -545,7 +545,7 @@ class TabView(ctk.CTkTabview):
         IngestBacktestWidgets = IngestSection(IngestBacktest_frame, "Backtest", IngestBacktestDirectory)
 
     # Define Widgets for Models Tab
-    def ModelsWidgets(self, Features_frame, Labels_frame, Train_frame, Backtest_frame, Evaluate_frame, Verify_frame, Promote_frame):
+    def ModelsWidgets(self, master, Features_frame, Labels_frame, Train_frame, Backtest_frame, Evaluate_frame, Verify_frame, Promote_frame):
         global FeaturesDirectory
         global LabelsDirectory
         global TrainDirectory
@@ -554,14 +554,14 @@ class TabView(ctk.CTkTabview):
         global VerifyDirectory
         global PromoteDirectory
 
-        FeaturesWidgets = ModelSectionData(Features_frame, "Features", FeaturesDirectory)
-        LabelsWidgets = ModelSectionData(Labels_frame, "Labels", LabelsDirectory)
+        FeaturesWidgets = ModelSectionData(Features_frame, master, "Features", FeaturesDirectory)
+        LabelsWidgets = ModelSectionData(Labels_frame, master, "Labels", LabelsDirectory)
 
-        TrainWidgets = ModelSectionCandidate(Train_frame, "Train", TrainDirectory)
-        BacktestWidgets = ModelSectionCandidate(Backtest_frame, "Backtest", BacktestDirectory)
-        EvaluateWidgets = ModelSectionCandidate(Evaluate_frame, "Evaluate", EvaluateDirectory)
-        VerifyWidgets = ModelSectionCandidate(Verify_frame, "Verify", VerifyDirectory)
-        PromoteWidgets = ModelSectionCandidate(Promote_frame, "Promote", PromoteDirectory)
+        TrainWidgets = ModelSectionCandidate(Train_frame, master, "Train", TrainDirectory)
+        BacktestWidgets = ModelSectionCandidate(Backtest_frame, master, "Backtest", BacktestDirectory)
+        EvaluateWidgets = ModelSectionCandidate(Evaluate_frame, master, "Evaluate", EvaluateDirectory)
+        VerifyWidgets = ModelSectionCandidate(Verify_frame, master, "Verify", VerifyDirectory)
+        PromoteWidgets = ModelSectionCandidate(Promote_frame, master, "Promote", PromoteDirectory)
 
     
     # Define Widgets for Analysis Tab
@@ -750,25 +750,116 @@ class IngestSection():
 #------------------------------------------------------------------------------
 # Class to Populate Widgets given a Frame for Models
 class ModelSectionData():
-    def __init__(self, Frame, ModelDataType, Directory):
+    def __init__(self, Frame, master, ModelDataType, Directory):
         super().__init__()
+
+        # Generate Strategy text
+        SetStratgetyIDText_label = ctk.CTkLabel(master=Frame, text="Generate Strategy:")
+        SetStratgetyIDText_label.place(x=20, y=50)
+        SetStratgetyIDText_label.configure(font=("Calibri", 15, 'italic'))
+
+        # Strategy ID Entry
+        StrategyIDEntry = ctk.CTkEntry(Frame, placeholder_text="Strategy ID")
+        StrategyIDEntry.place(x=140, y=50)
+        StrategyIDEntry.configure(width=50)
+        StrategyIDEntry.insert(0, "1")
+
+
+        StrategyID = StrategyIDEntry.get()
+        StrategyID = "0000" + StrategyID
+
+        def DataCommandAck():
+            master.popup = ctk.CTkToplevel()
+            master.popup.wm_title(ModelDataType + " to Backtest Data")
+
+            # Popup Dimensions
+            PopupWidth = 400
+            PopupHeight = 100
+
+            # Calculate Popup x and y coordinates
+            Popup_x, Popup_y = DisplayCoords(master.popup, PopupWidth, PopupHeight)
+
+            # Set Popup Dimensions and location
+            master.popup.geometry('%dx%d+%d+%d' % (PopupWidth, PopupHeight, Popup_x,Popup_y))
+
+            master.popup.grid_columnconfigure((0, 1, 2, 3), weight=1)
+            master.popup.grid_rowconfigure((0, 1, 2, 3, 4), weight=1)
+
+            Ack_label = ctk.CTkLabel(master=master.popup, text="Are you sure you want to apply " + ModelDataType + " to the Backtest data:")
+            Ack_label.grid(row=0, column=0, columnspan=4)
+
+            AckBegin_label = ctk.CTkLabel(master=master.popup, text="Strategy ID: " + StrategyID)
+            AckBegin_label.grid(row=1, column=1)
+
+            Yes_button = ctk.CTkButton(master=master.popup, text="Yes", command=DataCommand)
+            Yes_button.grid(row=4, column=1)
+
+            No_button = ctk.CTkButton(master=master.popup, text="No", command=master.popup.destroy)
+            No_button.grid(row=4, column=3)
+
+            # Make Popup stay ontop
+            master.popup.transient(master.popup.master)
+
+            # Hijack all commands from master, clicks on main window are ignored
+            master.popup.grab_set()
+
+        def DataCommand():
+            # Close Popup
+            master.popup.destroy()
+
+            StrategyID = StrategyIDEntry.get()
+            if (len(StrategyID)) < 5:
+                if (len(StrategyID)) == 1:
+                    StrategyID = "0000" + StrategyID
+                elif (len(StrategyID)) == 2:
+                    StrategyID = "000" + StrategyID
+                elif (len(StrategyID)) == 3:
+                    StrategyID = "00" + StrategyID
+                elif (len(StrategyID)) == 4:
+                    StrategyID = "0" + StrategyID
+
+            StrategyID = "strat_" + StrategyID
+            print("Apply " + ModelDataType + " to Backtest Data")
+
+            if (ModelDataType == "Features"):
+                subprocess.run(["powershell", "-c", Features(StrategyID)])
+            elif (ModelDataType == "Labels"):
+                subprocess.run(["powershell", "-c", Labels(StrategyID)])
+
+            # Update Listbox with Strategies
+            UpdateFileListbox(StrategyIDs_listbox, Directory, "")
+            
+            # Update Combobox with Strategies
+            UpdateFileCombobox(StrategyID_combobox, Directory, "")
+
+        # Data Button
+        DataCommand_button = ctk.CTkButton(master=Frame, text="Apply " + ModelDataType + " to Backtest Data", command=DataCommandAck)
+        DataCommand_button.place(x=80, y=90)
+        DataCommand_button.configure(width=150, height=25)
+        
 
         # Strategy Text
         Strategy_label = ctk.CTkLabel(master=Frame, text="Strategies")
-        Strategy_label.place(x=25, y=40)
+        Strategy_label.place(x=20, y=120)
         Strategy_label.configure(font=("Calibri", 18))
         
         # Strategy IDs Listbox
         StrategyIDs_listbox = tk.Listbox(Frame, width = 45, height = 4)
-        StrategyIDs_listbox.place(x=30, y=120)
+        StrategyIDs_listbox.place(x=30, y=260)
         StrategyIDs_listbox.configure(font=("Calibri", 18))
 
         # Update Listbox with files from Directory
         Files = UpdateFileListbox(StrategyIDs_listbox, Directory, "")
 
+        # Refresh MES Listbox Button
+        RefreshStrategyIDsListbox_button = ctk.CTkButton(master=Frame, text="Refresh", command= lambda: UpdateFileListbox(StrategyIDs_listbox, Directory, ""))
+        RefreshStrategyIDsListbox_button.place(x=260, y=120)
+        RefreshStrategyIDsListbox_button.configure(width=70, height=25)
+
         # Set Strategy ID text
         SetStratgetyIDText_label = ctk.CTkLabel(master=Frame, text="Select Strategy:")
-        SetStratgetyIDText_label.place(x=20, y=180)
+        SetStratgetyIDText_label.place(x=100, y=230)
+        SetStratgetyIDText_label.configure(font=("Calibri", 15, 'italic'))
 
 
         # Once Combobox element is selected, Update Listbox
@@ -787,7 +878,8 @@ class ModelSectionData():
 
         StrategyID_combobox_var = ctk.StringVar(value=str(Files[0]))
         StrategyID_combobox = ctk.CTkComboBox(Frame, command=StratgetyIDSet, variable=StrategyID_combobox_var)
-        StrategyID_combobox.place(x=200, y=180)
+        StrategyID_combobox.configure(width=120)
+        StrategyID_combobox.place(x=210, y=230)
 
         # Update Combobox with Strategies
         UpdateFileCombobox(StrategyID_combobox, Directory, "")
@@ -799,72 +891,32 @@ class ModelSectionData():
         elif (ModelDataType == "Labels"):
             ModelElementDirectory = Directory + "/" + StrategyID + "/10b/30-labels/MNQ/1m//10b/50-backtest"
 
+        # Model Element Data Files text
+        SetStratgetyIDText_label = ctk.CTkLabel(master=Frame, text=ModelDataType + ":")
+        SetStratgetyIDText_label.place(x=20, y=260)
+        SetStratgetyIDText_label.configure(font=("Calibri", 18))
+
         # Model Element Data Files Listbox
         ModelElementData_listbox = tk.Listbox(Frame, width = 45, height = 6)
-        ModelElementData_listbox.place(x=30, y=450)
+        ModelElementData_listbox.place(x=30, y=510)
         ModelElementData_listbox.configure(font=("Calibri", 18))
 
         # Update Listbox with files from Directory
         UpdateFileListbox(ModelElementData_listbox, ModelElementDirectory, ".parquet")
+
+        # Refresh Model Element Data Listbox Button
+        RefreshModelElementDataListbox_button = ctk.CTkButton(master=Frame, text="Refresh", command= lambda: UpdateFileListbox(ModelElementData_listbox, ModelElementDirectory, ".parquet"))
+        RefreshModelElementDataListbox_button.place(x=260, y=265)
+        RefreshModelElementDataListbox_button.configure(width=70, height=25)
         
 
-        def DataCommandAck():
-            app.popup = ctk.CTkToplevel()
-            app.popup.wm_title(ModelDataType + " to Backtest Data")
 
-            # Popup Dimensions
-            PopupWidth = 400
-            PopupHeight = 100
-
-            # Calculate Popup x and y coordinates
-            Popup_x, Popup_y = DisplayCoords(app.popup, PopupWidth, PopupHeight)
-
-            # Set Popup Dimensions and location
-            app.popup.geometry('%dx%d+%d+%d' % (PopupWidth, PopupHeight, Popup_x,Popup_y))
-
-            app.popup.grid_columnconfigure((0, 1, 2, 3), weight=1)
-            app.popup.grid_rowconfigure((0, 1, 2, 3, 4), weight=1)
-
-            Ack_label = ctk.CTkLabel(master=app.popup, text="Are you sure you want to apply " + ModelDataType + " to the Backtest data:")
-            Ack_label.grid(row=0, column=0, columnspan=4)
-
-            AckBegin_label = ctk.CTkLabel(master=app.popup, text="Strategy ID: " + StrategyID)
-            AckBegin_label.grid(row=1, column=1)
-
-            Yes_button = ctk.CTkButton(master=app.popup, text="Yes", command=DataCommand)
-            Yes_button.grid(row=4, column=1)
-
-            No_button = ctk.CTkButton(master=app.popup, text="No", command=app.popup.destroy)
-            No_button.grid(row=4, column=3)
-
-            # Make Popup stay ontop
-            app.popup.transient(app.popup.master)
-
-            # Hijack all commands from master, clicks on main window are ignored
-            app.popup.grab_set()
-
-        def DataCommand():
-            # Close Popup
-            app.popup.destroy()
-
-            StrategyID = StrategyID_combobox.get()
-
-            print("Apply " + ModelDataType + " to Backtest Data")
-            subprocess.run(["powershell", "-c", "python 10-code/10-runners/200-feature.py --model-type candidate -m backtest -d " + " --strategy-id " + StrategyID])
-
-
-            UpdateFileListbox(ModelElementData_listbox, ModelElementDirectory, ".parquet")
-
-        # Data Button
-        DataCommand_button = ctk.CTkButton(master=Frame, text="Apply " + ModelDataType + " to Backtest Data", command=DataCommandAck)
-        DataCommand_button.place(x=70, y=220)
-        DataCommand_button.configure(width=150, height=25)
 
 
 #------------------------------------------------------------------------------
 # Class to Populate Widgets given a Frame for Models
 class ModelSectionCandidate():
-    def __init__(self, Frame, ModelDataType, Directory):
+    def __init__(self, Frame, master, ModelDataType, Directory):
         super().__init__()
 
         # Strategy Text
@@ -883,6 +935,7 @@ class ModelSectionCandidate():
         # Set Strategy ID text
         SetStratgetyIDText_label = ctk.CTkLabel(master=Frame, text="Select Strategy:")
         SetStratgetyIDText_label.place(x=20, y=180)
+        SetStratgetyIDText_label.configure(font=("Calibri", 15, 'italic'))
 
 
         # Once Combobox element is selected, Update Listbox
@@ -890,15 +943,15 @@ class ModelSectionCandidate():
             StrategyID = choice
 
             if (ModelDataType == "Train"):
-                ModelElementDirectory = Directory + "/" + StrategyID + ""
+                ModelCandidateDirectory = Directory + "/" + StrategyID + ""
             elif (ModelDataType == "Backtest"):
-                ModelElementDirectory = Directory + "/" + StrategyID + ""
+                ModelCandidateDirectory = Directory + "/" + StrategyID + ""
             elif (ModelDataType == "Evaluate"):
-                ModelElementDirectory = Directory + "/" + StrategyID + ""
+                ModelCandidateDirectory = Directory + "/" + StrategyID + ""
             elif (ModelDataType == "Verify"):
-                ModelElementDirectory = Directory + "/" + StrategyID + ""
+                ModelCandidateDirectory = Directory + "/" + StrategyID + ""
             elif (ModelDataType == "Promote"):
-                ModelElementDirectory = Directory + "/" + StrategyID + ""
+                ModelCandidateDirectory = Directory + "/" + StrategyID + ""
 
             # Update Listbox with files from Directory
             UpdateFileListbox(ModelCandidateData_listbox, ModelCandidateDirectory, ".parquet")
@@ -935,55 +988,63 @@ class ModelSectionCandidate():
         
 
         def CandidateCommandAck():
-            app.popup = ctk.CTkToplevel()
-            app.popup.wm_title(ModelDataType + " Candidate")
+            master.popup = ctk.CTkToplevel()
+            master.popup.wm_title(ModelDataType + " Candidate")
 
             # Popup Dimensions
             PopupWidth = 400
             PopupHeight = 100
 
             # Calculate Popup x and y coordinates
-            Popup_x, Popup_y = DisplayCoords(app.popup, PopupWidth, PopupHeight)
+            Popup_x, Popup_y = DisplayCoords(master.popup, PopupWidth, PopupHeight)
 
             # Set Popup Dimensions and location
-            app.popup.geometry('%dx%d+%d+%d' % (PopupWidth, PopupHeight, Popup_x,Popup_y))
+            master.popup.geometry('%dx%d+%d+%d' % (PopupWidth, PopupHeight, Popup_x,Popup_y))
 
-            app.popup.grid_columnconfigure((0, 1, 2, 3), weight=1)
-            app.popup.grid_rowconfigure((0, 1, 2, 3, 4), weight=1)
+            master.popup.grid_columnconfigure((0, 1, 2, 3), weight=1)
+            master.popup.grid_rowconfigure((0, 1, 2, 3, 4), weight=1)
 
-            Ack_label = ctk.CTkLabel(master=app.popup, text="Are you sure you want to " + ModelDataType + " this Model:")
+            Ack_label = ctk.CTkLabel(master=master.popup, text="Are you sure you want to " + ModelDataType + " this Model:")
             Ack_label.grid(row=0, column=0, columnspan=4)
 
-            AckBegin_label = ctk.CTkLabel(master=app.popup, text="Strategy ID: " + StrategyID)
+            AckBegin_label = ctk.CTkLabel(master=master.popup, text="Strategy ID: " + StrategyID)
             AckBegin_label.grid(row=1, column=1)
 
 
-            Yes_button = ctk.CTkButton(master=app.popup, text="Yes", command=CandiateCommand)
+            Yes_button = ctk.CTkButton(master=master.popup, text="Yes", command=CandiateCommand)
             Yes_button.grid(row=4, column=1)
 
-            No_button = ctk.CTkButton(master=app.popup, text="No", command=app.popup.destroy)
+            No_button = ctk.CTkButton(master=master.popup, text="No", command=master.popup.destroy)
             No_button.grid(row=4, column=3)
 
             # Make Popup stay ontop
-            app.popup.transient(app.popup.master)
+            master.popup.transient(master.popup.master)
 
             # Hijack all commands from master, clicks on main window are ignored
-            app.popup.grab_set()
+            master.popup.grab_set()
 
         def CandiateCommand():
             # Close Popup
-            app.popup.destroy()
+            master.popup.destroy()
 
-            StrategyID = StrategyIDEntry.get()
-            StrategyID = "0000" + StrategyID
+            StrategyID = StrategyID_combobox.get()
 
             print(ModelDataType + " Candidate Model")
 
-            subprocess.run(["powershell", "-c", "python 10-code/10-runners/200-feature.py --model-type candidate -m backtest" + " --strategy-id strat_" + StrategyID])
+            if (ModelDataType == "Train"):
+                subprocess.run(["powershell", "-c", Train(StrategyID)])
+            elif (ModelDataType == "Backtest"):
+                subprocess.run(["powershell", "-c", Backtest(StrategyID)])
+            elif (ModelDataType == "Evaluate"):
+                subprocess.run(["powershell", "-c", Evaluate(StrategyID)])
+            elif (ModelDataType == "Verify"):
+                subprocess.run(["powershell", "-c", Verify(StrategyID)])
+            elif (ModelDataType == "Promote"):
+                subprocess.run(["powershell", "-c", Promote(StrategyID)])
 
             StrategyIDFeaturesDirectory = ProjectDirectory + str("/20-data/400-models/candidate/strat_0000" + StrategyID + "/10b/20-features/MNQ/1m/50-backtest")
 
-            UpdateFileListbox(StrategyIDCommand_listbox, ModelElementDirectory)
+            UpdateFileListbox(ModelCandidateData_listbox, ModelCandidateDirectory)
 
         # Features Data Button
         CandidateCommand_button = ctk.CTkButton(master=Frame, text=ModelDataType + " this Candidate Model", command=CandidateCommandAck)
