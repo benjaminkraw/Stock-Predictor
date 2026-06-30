@@ -275,6 +275,7 @@ class TabView(ctk.CTkTabview):
         IngestTrain_frame = ctk.CTkFrame(master=self.tab(IngestDataTab))
         IngestBacktest_frame = ctk.CTkFrame(master=self.tab(IngestDataTab))
 
+        Strategies_frame = ctk.CTkFrame(master=Models_frame)
         Features_frame = ctk.CTkFrame(master=Models_frame)
         Labels_frame = ctk.CTkFrame(master=Models_frame)
         Train_frame = ctk.CTkFrame(master=Models_frame)
@@ -323,7 +324,13 @@ class TabView(ctk.CTkTabview):
         ModelSubSectionWidth = 350
         ModelSubSectionHeight = 415
 
-        Features_frame.place(x=10, y=70)
+        Strategies_frame.place(x=10, y=70)
+        Strategies_frame.configure(width = ModelSubSectionWidth, height = ModelSubSectionHeight)
+        Strategies_frame.configure(fg_color=(SubSectionColor))
+        Strategies_frame.update_idletasks()
+
+
+        Features_frame.place(x=round(Strategies_frame.winfo_x() / PixScale), y=round(Strategies_frame.winfo_y() / PixScale) + round(Strategies_frame.winfo_height() / PixScale) + 10)
         Features_frame.configure(width = ModelSubSectionWidth, height = ModelSubSectionHeight)
         Features_frame.configure(fg_color=(SubSectionColor))
         Features_frame.update_idletasks()
@@ -375,6 +382,8 @@ class TabView(ctk.CTkTabview):
         IngestTrainTitle_label = ctk.CTkLabel(master=IngestTrain_frame, text="Training Data", font=("Calibri", SubSectionFontSize))
         IngestBacktestTitle_label = ctk.CTkLabel(master=IngestBacktest_frame, text="Backtest Data", font=("Calibri", SubSectionFontSize))
 
+        StrategiesTitle_label = ctk.CTkLabel(master=Strategies_frame, text="Strategy", font=("Calibri", SubSectionFontSize))
+
         FeaturesTitle_label = ctk.CTkLabel(master=Features_frame, text="Features", font=("Calibri", SubSectionFontSize))
         LabelsTitle_label = ctk.CTkLabel(master=Labels_frame, text="Labels", font=("Calibri", SubSectionFontSize))
         TrainTitle_label = ctk.CTkLabel(master=Train_frame, text="Train Candidate", font=("Calibri", SubSectionFontSize))
@@ -397,6 +406,7 @@ class TabView(ctk.CTkTabview):
         IngestTrainTitle_label.place(x=Title_x, y=Title_y)
         IngestBacktestTitle_label.place(x=Title_x, y=Title_y)
 
+        StrategiesTitle_label.place(x=Title_x, y=Title_y)
         FeaturesTitle_label.place(x=Title_x, y=Title_y)
         LabelsTitle_label.place(x=Title_x, y=Title_y)
         TrainTitle_label.place(x=Title_x, y=Title_y)
@@ -409,7 +419,7 @@ class TabView(ctk.CTkTabview):
         # Add Widgets to respective Tabs
         self.ProjectWidgets(master, Project_frame)
         self.IngestWidgets(IngestTrain_frame, IngestBacktest_frame)
-        self.ModelsWidgets(master, Features_frame, Labels_frame, Train_frame, Backtest_frame, Evaluate_frame, Verify_frame, Promote_frame)
+        self.ModelsWidgets(master, Strategies_frame, Features_frame, Labels_frame, Train_frame, Backtest_frame, Evaluate_frame, Verify_frame, Promote_frame)
         self.AnalysisWidgets(Analysis_frame)
 
 
@@ -421,6 +431,7 @@ class TabView(ctk.CTkTabview):
         global IngestTrainingDirectory; IngestTrainingDirectory = ProjectDirectory + str("/20-data/100-ingest/40-training/ibkr")
         global IngestBacktestDirectory; IngestBacktestDirectory = ProjectDirectory + str("/20-data/100-ingest/50-backtest/ibkr")
 
+        global StrategiesDirectory; StrategiesDirectory = ProjectDirectory + str("/20-data/400-models/candidate")
         global FeaturesDirectory; FeaturesDirectory = ProjectDirectory + str("/20-data/400-models/candidate")
         global LabelsDirectory; LabelsDirectory = ProjectDirectory + str("/20-data/400-models/candidate")
         global TrainDirectory; TrainDirectory = ProjectDirectory + str("/20-data/400-models/candidate")
@@ -545,7 +556,8 @@ class TabView(ctk.CTkTabview):
         IngestBacktestWidgets = IngestSection(IngestBacktest_frame, "Backtest", IngestBacktestDirectory)
 
     # Define Widgets for Models Tab
-    def ModelsWidgets(self, master, Features_frame, Labels_frame, Train_frame, Backtest_frame, Evaluate_frame, Verify_frame, Promote_frame):
+    def ModelsWidgets(self, master, Strategies_frame, Features_frame, Labels_frame, Train_frame, Backtest_frame, Evaluate_frame, Verify_frame, Promote_frame):
+        global StrategiesDirectory
         global FeaturesDirectory
         global LabelsDirectory
         global TrainDirectory
@@ -553,6 +565,8 @@ class TabView(ctk.CTkTabview):
         global EvaluateDirectory
         global VerifyDirectory
         global PromoteDirectory
+
+        StrategiesWidgets = ModelSectionStrategy(Strategies_frame, master, StrategiesDirectory)
 
         FeaturesWidgets = ModelSectionData(Features_frame, master, "Features", FeaturesDirectory)
         LabelsWidgets = ModelSectionData(Labels_frame, master, "Labels", LabelsDirectory)
@@ -746,6 +760,30 @@ class IngestSection():
         SetBeginDate()
         SetEndDate()
 
+#------------------------------------------------------------------------------
+# Class to Populate Widgets given a Frame for Models
+class ModelSectionStrategy():
+    def __init__(self, Frame, master, Directory):
+        super().__init__()
+
+        # Strategy Text
+        Strategy_label = ctk.CTkLabel(master=Frame, text="Strategies")
+        Strategy_label.place(x=20, y=120)
+        Strategy_label.configure(font=("Calibri", 18))
+        
+        # Strategy IDs Listbox
+        StrategyIDs_listbox = tk.Listbox(Frame, width = 45, height = 4)
+        StrategyIDs_listbox.place(x=30, y=260)
+        StrategyIDs_listbox.configure(font=("Calibri", 18))
+
+        # Update Listbox with files from Directory
+        Files = UpdateFileListbox(StrategyIDs_listbox, Directory, "")
+
+        # Refresh StrategyIDs Listbox Button
+        RefreshStrategyIDsListbox_button = ctk.CTkButton(master=Frame, text="Refresh", command= lambda: UpdateFileListbox(StrategyIDs_listbox, Directory, ""))
+        RefreshStrategyIDsListbox_button.place(x=260, y=120)
+        RefreshStrategyIDsListbox_button.configure(width=70, height=25)
+
 
 #------------------------------------------------------------------------------
 # Class to Populate Widgets given a Frame for Models
@@ -761,7 +799,7 @@ class ModelSectionData():
         # Strategy ID Entry
         StrategyIDEntry = ctk.CTkEntry(Frame, placeholder_text="Strategy ID")
         StrategyIDEntry.place(x=140, y=50)
-        StrategyIDEntry.configure(width=50)
+        StrategyIDEntry.configure(width=55)
         StrategyIDEntry.insert(0, "1")
 
 
@@ -788,6 +826,17 @@ class ModelSectionData():
             Ack_label = ctk.CTkLabel(master=master.popup, text="Are you sure you want to apply " + ModelDataType + " to the Backtest data:")
             Ack_label.grid(row=0, column=0, columnspan=4)
 
+            StrategyID = StrategyIDEntry.get()
+            if (len(StrategyID)) < 5:
+                if (len(StrategyID)) == 1:
+                    StrategyID = "0000" + StrategyID
+                elif (len(StrategyID)) == 2:
+                    StrategyID = "000" + StrategyID
+                elif (len(StrategyID)) == 3:
+                    StrategyID = "00" + StrategyID
+                elif (len(StrategyID)) == 4:
+                    StrategyID = "0" + StrategyID
+                    
             AckBegin_label = ctk.CTkLabel(master=master.popup, text="Strategy ID: " + StrategyID)
             AckBegin_label.grid(row=1, column=1)
 
@@ -851,7 +900,7 @@ class ModelSectionData():
         # Update Listbox with files from Directory
         Files = UpdateFileListbox(StrategyIDs_listbox, Directory, "")
 
-        # Refresh MES Listbox Button
+        # Refresh StrategyIDs Listbox Button
         RefreshStrategyIDsListbox_button = ctk.CTkButton(master=Frame, text="Refresh", command= lambda: UpdateFileListbox(StrategyIDs_listbox, Directory, ""))
         RefreshStrategyIDsListbox_button.place(x=260, y=120)
         RefreshStrategyIDsListbox_button.configure(width=70, height=25)
@@ -903,15 +952,7 @@ class ModelSectionData():
 
         # Update Listbox with files from Directory
         UpdateFileListbox(ModelElementData_listbox, ModelElementDirectory, ".parquet")
-
-        # Refresh Model Element Data Listbox Button
-        RefreshModelElementDataListbox_button = ctk.CTkButton(master=Frame, text="Refresh", command= lambda: UpdateFileListbox(ModelElementData_listbox, ModelElementDirectory, ".parquet"))
-        RefreshModelElementDataListbox_button.place(x=260, y=265)
-        RefreshModelElementDataListbox_button.configure(width=70, height=25)
         
-
-
-
 
 #------------------------------------------------------------------------------
 # Class to Populate Widgets given a Frame for Models
@@ -1041,8 +1082,6 @@ class ModelSectionCandidate():
                 subprocess.run(["powershell", "-c", Verify(StrategyID)])
             elif (ModelDataType == "Promote"):
                 subprocess.run(["powershell", "-c", Promote(StrategyID)])
-
-            StrategyIDFeaturesDirectory = ProjectDirectory + str("/20-data/400-models/candidate/strat_0000" + StrategyID + "/10b/20-features/MNQ/1m/50-backtest")
 
             UpdateFileListbox(ModelCandidateData_listbox, ModelCandidateDirectory)
 
