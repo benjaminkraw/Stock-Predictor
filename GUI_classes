@@ -322,10 +322,10 @@ class TabView(ctk.CTkTabview):
     
 
         ModelSubSectionWidth = 350
-        ModelSubSectionHeight = 415
+        ModelSubSectionHeight = 300
 
         Strategies_frame.place(x=10, y=70)
-        Strategies_frame.configure(width = ModelSubSectionWidth, height = ModelSubSectionHeight)
+        Strategies_frame.configure(width = ModelSubSectionWidth, height = 240)
         Strategies_frame.configure(fg_color=(SubSectionColor))
         Strategies_frame.update_idletasks()
 
@@ -341,6 +341,8 @@ class TabView(ctk.CTkTabview):
         Labels_frame.update_idletasks()
 
 
+        ModelSubSectionHeight = 280
+        
         Train_frame.place(x=round(Features_frame.winfo_x() / PixScale), y=round(Features_frame.winfo_y() / PixScale) + round(Features_frame.winfo_height() / PixScale) + 10)
         Train_frame.configure(width = ModelSubSectionWidth, height = ModelSubSectionHeight)
         Train_frame.configure(fg_color=(SubSectionColor))
@@ -768,12 +770,12 @@ class ModelSectionStrategy():
 
         # Strategy Text
         Strategy_label = ctk.CTkLabel(master=Frame, text="Strategies")
-        Strategy_label.place(x=20, y=120)
+        Strategy_label.place(x=20, y=50)
         Strategy_label.configure(font=("Calibri", 18))
         
         # Strategy IDs Listbox
-        StrategyIDs_listbox = tk.Listbox(Frame, width = 45, height = 4)
-        StrategyIDs_listbox.place(x=30, y=260)
+        global StrategyIDs_listbox; StrategyIDs_listbox = tk.Listbox(Frame, width = 45, height = 8)
+        StrategyIDs_listbox.place(x=30, y=150)
         StrategyIDs_listbox.configure(font=("Calibri", 18))
 
         # Update Listbox with files from Directory
@@ -781,7 +783,7 @@ class ModelSectionStrategy():
 
         # Refresh StrategyIDs Listbox Button
         RefreshStrategyIDsListbox_button = ctk.CTkButton(master=Frame, text="Refresh", command= lambda: UpdateFileListbox(StrategyIDs_listbox, Directory, ""))
-        RefreshStrategyIDsListbox_button.place(x=260, y=120)
+        RefreshStrategyIDsListbox_button.place(x=260, y=55)
         RefreshStrategyIDsListbox_button.configure(width=70, height=25)
 
 
@@ -801,7 +803,6 @@ class ModelSectionData():
         StrategyIDEntry.place(x=140, y=50)
         StrategyIDEntry.configure(width=55)
         StrategyIDEntry.insert(0, "1")
-
 
         StrategyID = StrategyIDEntry.get()
         StrategyID = "0000" + StrategyID
@@ -876,6 +877,7 @@ class ModelSectionData():
                 subprocess.run(["powershell", "-c", Labels(StrategyID)])
 
             # Update Listbox with Strategies
+            global StrategyIDs_listbox
             UpdateFileListbox(StrategyIDs_listbox, Directory, "")
             
             # Update Combobox with Strategies
@@ -885,29 +887,13 @@ class ModelSectionData():
         DataCommand_button = ctk.CTkButton(master=Frame, text="Apply " + ModelDataType + " to Backtest Data", command=DataCommandAck)
         DataCommand_button.place(x=80, y=90)
         DataCommand_button.configure(width=150, height=25)
-        
-
-        # Strategy Text
-        Strategy_label = ctk.CTkLabel(master=Frame, text="Strategies")
-        Strategy_label.place(x=20, y=120)
-        Strategy_label.configure(font=("Calibri", 18))
-        
-        # Strategy IDs Listbox
-        StrategyIDs_listbox = tk.Listbox(Frame, width = 45, height = 4)
-        StrategyIDs_listbox.place(x=30, y=260)
-        StrategyIDs_listbox.configure(font=("Calibri", 18))
 
         # Update Listbox with files from Directory
         Files = UpdateFileListbox(StrategyIDs_listbox, Directory, "")
 
-        # Refresh StrategyIDs Listbox Button
-        RefreshStrategyIDsListbox_button = ctk.CTkButton(master=Frame, text="Refresh", command= lambda: UpdateFileListbox(StrategyIDs_listbox, Directory, ""))
-        RefreshStrategyIDsListbox_button.place(x=260, y=120)
-        RefreshStrategyIDsListbox_button.configure(width=70, height=25)
-
         # Set Strategy ID text
         SetStratgetyIDText_label = ctk.CTkLabel(master=Frame, text="Select Strategy:")
-        SetStratgetyIDText_label.place(x=100, y=230)
+        SetStratgetyIDText_label.place(x=20, y=130)
         SetStratgetyIDText_label.configure(font=("Calibri", 15, 'italic'))
 
 
@@ -928,7 +914,7 @@ class ModelSectionData():
         StrategyID_combobox_var = ctk.StringVar(value=str(Files[0]))
         StrategyID_combobox = ctk.CTkComboBox(Frame, command=StratgetyIDSet, variable=StrategyID_combobox_var)
         StrategyID_combobox.configure(width=120)
-        StrategyID_combobox.place(x=210, y=230)
+        StrategyID_combobox.place(x=140, y=130)
 
         # Update Combobox with Strategies
         UpdateFileCombobox(StrategyID_combobox, Directory, "")
@@ -942,12 +928,12 @@ class ModelSectionData():
 
         # Model Element Data Files text
         SetStratgetyIDText_label = ctk.CTkLabel(master=Frame, text=ModelDataType + ":")
-        SetStratgetyIDText_label.place(x=20, y=260)
+        SetStratgetyIDText_label.place(x=20, y=160)
         SetStratgetyIDText_label.configure(font=("Calibri", 18))
 
         # Model Element Data Files Listbox
-        ModelElementData_listbox = tk.Listbox(Frame, width = 45, height = 6)
-        ModelElementData_listbox.place(x=30, y=510)
+        ModelElementData_listbox = tk.Listbox(Frame, width = 45, height = 5)
+        ModelElementData_listbox.place(x=30, y=340)
         ModelElementData_listbox.configure(font=("Calibri", 18))
 
         # Update Listbox with files from Directory
@@ -959,23 +945,12 @@ class ModelSectionData():
 class ModelSectionCandidate():
     def __init__(self, Frame, master, ModelDataType, Directory):
         super().__init__()
-
-        # Strategy Text
-        Strategy_label = ctk.CTkLabel(master=Frame, text="Strategies")
-        Strategy_label.place(x=25, y=40)
-        Strategy_label.configure(font=("Calibri", 18))
-        
-        # Strategy IDs Listbox
-        StrategyIDs_listbox = tk.Listbox(Frame, width = 45, height = 4)
-        StrategyIDs_listbox.place(x=30, y=120)
-        StrategyIDs_listbox.configure(font=("Calibri", 18))
-
         # Update Listbox with files from Directory
         Files = UpdateFileListbox(StrategyIDs_listbox, Directory, "")
 
         # Set Strategy ID text
         SetStratgetyIDText_label = ctk.CTkLabel(master=Frame, text="Select Strategy:")
-        SetStratgetyIDText_label.place(x=20, y=180)
+        SetStratgetyIDText_label.place(x=20, y=50)
         SetStratgetyIDText_label.configure(font=("Calibri", 15, 'italic'))
 
 
@@ -1001,7 +976,8 @@ class ModelSectionCandidate():
 
         StrategyID_combobox_var = ctk.StringVar(value=str(Files[0]))
         StrategyID_combobox = ctk.CTkComboBox(Frame, command=StratgetyIDSet, variable=StrategyID_combobox_var)
-        StrategyID_combobox.place(x=200, y=180)
+        StrategyID_combobox.place(x=140, y=50)
+        StrategyID_combobox.configure(width=120)
 
         # Update Combobox with Strategies
         UpdateFileCombobox(StrategyID_combobox, Directory, "")
@@ -1021,7 +997,7 @@ class ModelSectionCandidate():
 
         # Model Candidate Files Listbox
         ModelCandidateData_listbox = tk.Listbox(Frame, width = 45, height = 6)
-        ModelCandidateData_listbox.place(x=30, y=450)
+        ModelCandidateData_listbox.place(x=30, y=220)
         ModelCandidateData_listbox.configure(font=("Calibri", 18))
 
         # Update Listbox with files from Directory
@@ -1087,7 +1063,7 @@ class ModelSectionCandidate():
 
         # Features Data Button
         CandidateCommand_button = ctk.CTkButton(master=Frame, text=ModelDataType + " this Candidate Model", command=CandidateCommandAck)
-        CandidateCommand_button.place(x=70, y=220)
+        CandidateCommand_button.place(x=80, y=90)
         CandidateCommand_button.configure(width=150, height=25)
 
 
