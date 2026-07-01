@@ -20,6 +20,8 @@ from screeninfo import get_monitors         # Connected Monitor information
 from os import listdir                      # Access base drives of local PC
 from os.path import isfile, join
 
+import pandas as pd                         # Used as data analysis
+
 from matplotlib.figure import Figure        # Data graphing
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)
 
@@ -263,7 +265,7 @@ class TabView(ctk.CTkTabview):
         self.add(ModelsTab)
         self.add(AnalysisTab)
 
-        self.set(ModelsTab)
+        self.set(AnalysisTab)
 
         # Setup Sections
         Project_frame = ctk.CTkFrame(master=self.tab(ProjectTab))
@@ -283,6 +285,9 @@ class TabView(ctk.CTkTabview):
         Evaluate_frame = ctk.CTkFrame(master=Models_frame)
         Verify_frame = ctk.CTkFrame(master=Models_frame)
         Promote_frame = ctk.CTkFrame(master=Models_frame)
+
+        IngestTrainAnalysis_frame = ctk.CTkFrame(master=Analysis_frame)
+        IngestBacktestAnalysis_frame = ctk.CTkFrame(master=Analysis_frame)
 
 
         # Configure Sections
@@ -369,6 +374,17 @@ class TabView(ctk.CTkTabview):
         Promote_frame.update_idletasks()
 
 
+        IngestTrainAnalysis_frame.place(x=10, y=70)
+        IngestTrainAnalysis_frame.configure(width = 650, height = 700)
+        IngestTrainAnalysis_frame.configure(fg_color=(SubSectionColor))
+        IngestTrainAnalysis_frame.update_idletasks()
+        
+        IngestBacktestAnalysis_frame.place(x=round(IngestTrainAnalysis_frame.winfo_x() / PixScale) + round(IngestTrainAnalysis_frame.winfo_width() / PixScale) + 10, y=round(IngestTrainAnalysis_frame.winfo_y() / PixScale))
+        IngestBacktestAnalysis_frame.configure(width = 650, height = 700)
+        IngestBacktestAnalysis_frame.configure(fg_color=(SubSectionColor))
+        IngestBacktestAnalysis_frame.update_idletasks()
+
+
         # Sections Title
         SectionFontSize = 35
 
@@ -394,6 +410,9 @@ class TabView(ctk.CTkTabview):
         VerifyTitle_label = ctk.CTkLabel(master=Verify_frame, text="Verify Candidate", font=("Calibri", SubSectionFontSize))
         PromoteTitle_label = ctk.CTkLabel(master=Promote_frame, text="Promote Candidate", font=("Calibri", SubSectionFontSize))
 
+        IngestTrainAnalysis_label = ctk.CTkLabel(master=IngestTrainAnalysis_frame, text="Ingested Training Data", font=("Calibri", SubSectionFontSize))
+        IngestBacktestAnalysis_label = ctk.CTkLabel(master=IngestBacktestAnalysis_frame, text="Ingested Backtest Data", font=("Calibri", SubSectionFontSize))
+
         
         Title_x = 10
         Title_y = 5
@@ -417,18 +436,90 @@ class TabView(ctk.CTkTabview):
         VerifyTitle_label.place(x=Title_x, y=Title_y)
         PromoteTitle_label.place(x=Title_x, y=Title_y)
 
+        IngestTrainAnalysis_label.place(x=Title_x, y=Title_y)
+        IngestBacktestAnalysis_label.place(x=Title_x, y=Title_y)
+
+
 
         # Add Widgets to respective Tabs
         self.ProjectWidgets(master, Project_frame)
-        self.IngestWidgets(IngestTrain_frame, IngestBacktest_frame)
+        self.IngestWidgets(master, IngestTrain_frame, IngestBacktest_frame)
         self.ModelsWidgets(master, Strategies_frame, Features_frame, Labels_frame, Train_frame, Backtest_frame, Evaluate_frame, Verify_frame, Promote_frame)
-        self.AnalysisWidgets(Analysis_frame)
+        self.AnalysisWidgets(master, IngestTrainAnalysis_frame, IngestBacktestAnalysis_frame)
 
 
     
 
     # Define Widgets for Project Tab
     def ProjectWidgets(self, master, Project_frame):
+        global ProjectDirectory
+        global IngestTrainingDirectory
+        global IngestBacktestDirectory
+
+        global StrategiesDirectory
+        global FeaturesDirectory
+        global LabelsDirectory
+        global TrainDirectory
+        global BacktestDirectory
+        global EvaluateDirectory
+        global VerifyDirectory
+        global PromoteDirectory
+
+        ProjectWidgets = ProjectSection(Project_frame)
+
+          
+    # Define Widgets for Ingest Tab
+    def IngestWidgets(self, master, IngestTrain_frame, IngestBacktest_frame):
+        global IngestTrainingDirectory
+        global IngestBacktestDirectory
+
+        IngestTrainWidgets = IngestSection(IngestTrain_frame, "Train", IngestTrainingDirectory)
+        IngestBacktestWidgets = IngestSection(IngestBacktest_frame, "Backtest", IngestBacktestDirectory)
+
+
+    # Define Widgets for Models Tab
+    def ModelsWidgets(self, master, Strategies_frame, Features_frame, Labels_frame, Train_frame, Backtest_frame, Evaluate_frame, Verify_frame, Promote_frame):
+        global StrategiesDirectory
+        global FeaturesDirectory
+        global LabelsDirectory
+        global TrainDirectory
+        global BacktestDirectory
+        global EvaluateDirectory
+        global VerifyDirectory
+        global PromoteDirectory
+
+        StrategiesWidgets = ModelSectionStrategy(Strategies_frame, master, StrategiesDirectory)
+
+        FeaturesWidgets = ModelSectionData(Features_frame, master, "Features", FeaturesDirectory)
+        LabelsWidgets = ModelSectionData(Labels_frame, master, "Labels", LabelsDirectory)
+
+        TrainWidgets = ModelSectionCandidate(Train_frame, master, "Train", TrainDirectory)
+        BacktestWidgets = ModelSectionCandidate(Backtest_frame, master, "Backtest", BacktestDirectory)
+        EvaluateWidgets = ModelSectionCandidate(Evaluate_frame, master, "Evaluate", EvaluateDirectory)
+        VerifyWidgets = ModelSectionCandidate(Verify_frame, master, "Verify", VerifyDirectory)
+        PromoteWidgets = ModelSectionCandidate(Promote_frame, master, "Promote", PromoteDirectory)
+
+    
+    # Define Widgets for Analysis Tab
+    def AnalysisWidgets(self, master, IngestTrainAnalysis_frame, IngestBacktestAnalysis_frame):
+        global IngestTrainingDirectory
+        global IngestBacktestDirectory
+        
+        global StrategiesDirectory
+        global FeaturesDirectory
+        global LabelsDirectory
+
+        TrainDataAnalysisWidgets = AnalysisSectionIngest(IngestTrainAnalysis_frame, master, "Train", IngestTrainingDirectory)
+        BacktestDataAnalysisWidgets = AnalysisSectionIngest(IngestBacktestAnalysis_frame, master, "Backtest", IngestTrainingDirectory)
+
+        pass
+
+#------------------------------------------------------------------------------
+# Class to Populate Widgets given a Frame for Project
+class ProjectSection():
+    def __init__(self, Frame):
+        super().__init__()
+
         global ProjectDirectory; ProjectDirectory = "C:/Users/Benjamin/Documents/DarwinAI/v3.2"
         global IngestTrainingDirectory; IngestTrainingDirectory = ProjectDirectory + str("/20-data/100-ingest/40-training/ibkr")
         global IngestBacktestDirectory; IngestBacktestDirectory = ProjectDirectory + str("/20-data/100-ingest/50-backtest/ibkr")
@@ -480,25 +571,23 @@ class TabView(ctk.CTkTabview):
                 global PromoteDirectory
                 PromoteDirectory = Directory
           
-
-
         
         
         DirectoryText_x = 430
         DirectoryText_fgcolor = "#181C1E"
 
         # Project Directory
-        ProjectDirectory_label = ctk.CTkLabel(master=Project_frame, text=ProjectDirectory)
+        ProjectDirectory_label = ctk.CTkLabel(master=Frame, text=ProjectDirectory)
         ProjectDirectory_label.place(x=DirectoryText_x, y=75)
         ProjectDirectory_label.configure(fg_color=DirectoryText_fgcolor)
 
         # Ingest Training Directory
-        IngestTrainingDirectory_label = ctk.CTkLabel(master=Project_frame, text=IngestTrainingDirectory)
+        IngestTrainingDirectory_label = ctk.CTkLabel(master=Frame, text=IngestTrainingDirectory)
         IngestTrainingDirectory_label.place(x=DirectoryText_x, y=105)
         IngestTrainingDirectory_label.configure(fg_color=DirectoryText_fgcolor)
 
         # Ingest Backtest Directory
-        IngestBacktestDirectory_label = ctk.CTkLabel(master=Project_frame, text=IngestBacktestDirectory)
+        IngestBacktestDirectory_label = ctk.CTkLabel(master=Frame, text=IngestBacktestDirectory)
         IngestBacktestDirectory_label.place(x=DirectoryText_x, y=135)
         IngestBacktestDirectory_label.configure(fg_color=DirectoryText_fgcolor)
         
@@ -507,7 +596,7 @@ class TabView(ctk.CTkTabview):
         SetDirectoryButton_width = 200
 
         # Subprocess Test Button
-        SubprocessTest_button = ctk.CTkButton(master=Project_frame, text="Subprocess Test")
+        SubprocessTest_button = ctk.CTkButton(master=Frame, text="Subprocess Test")
         # SubprocessTest_button.configure(command=run_terminal_command(master, SubprocessTest_button, ""))
         SubprocessTest_button.configure(command=run_terminal_command)
         SubprocessTest_button.place(x=300, y=300)
@@ -515,75 +604,34 @@ class TabView(ctk.CTkTabview):
 
 
         # Project Directory Button
-        ProjectDirectory_button = ctk.CTkButton(master=Project_frame, text="Set Project Directory", command=lambda: SetDirectory("Project", ProjectDirectory, ProjectDirectory_label))
+        ProjectDirectory_button = ctk.CTkButton(master=Frame, text="Set Project Directory", command=lambda: SetDirectory("Project", ProjectDirectory, ProjectDirectory_label))
         ProjectDirectory_button.place(x=10, y=75)
         ProjectDirectory_button.configure(width=SetDirectoryButton_width, height=25)
 
         # Ingest Training Directory Button
-        IngestTrainingDirectory_button = ctk.CTkButton(master=Project_frame, text="Set Ingest Training Directory", command=lambda: SetDirectory("Ingest Training", IngestTrainingDirectory, IngestTrainingDirectory_label))
+        IngestTrainingDirectory_button = ctk.CTkButton(master=Frame, text="Set Ingest Training Directory", command=lambda: SetDirectory("Ingest Training", IngestTrainingDirectory, IngestTrainingDirectory_label))
         IngestTrainingDirectory_button.place(x=10, y=105)
         IngestTrainingDirectory_button.configure(width=SetDirectoryButton_width, height=25)
 
         # Ingest Backtest Directory Button
-        IngestBacktestDirectory_button = ctk.CTkButton(master=Project_frame, text="Set Ingest Backtest Directory", command=lambda: SetDirectory("Ingest Backtest", IngestBacktestDirectory, IngestBacktestDirectory_label))
+        IngestBacktestDirectory_button = ctk.CTkButton(master=Frame, text="Set Ingest Backtest Directory", command=lambda: SetDirectory("Ingest Backtest", IngestBacktestDirectory, IngestBacktestDirectory_label))
         IngestBacktestDirectory_button.place(x=10, y=135)
         IngestBacktestDirectory_button.configure(width=SetDirectoryButton_width, height=25)
-
-
 
 
         DirectoryLabelText_x = 250
 
         # Project Directory Text
-        ProjectDirectoryText_label = ctk.CTkLabel(master=Project_frame, text="Project Directory:")
+        ProjectDirectoryText_label = ctk.CTkLabel(master=Frame, text="Project Directory:")
         ProjectDirectoryText_label.place(x=DirectoryLabelText_x, y=75)
 
         # Ingest Training Directory Text
-        IngestTrainingDirectoryText_label = ctk.CTkLabel(master=Project_frame, text="Ingest Training Directory:")
+        IngestTrainingDirectoryText_label = ctk.CTkLabel(master=Frame, text="Ingest Training Directory:")
         IngestTrainingDirectoryText_label.place(x=DirectoryLabelText_x, y=105)
 
         # Ingest Backtest Directory Text
-        IngestBacktestDirectoryText_label = ctk.CTkLabel(master=Project_frame, text="Ingest Backtest Directory:")
+        IngestBacktestDirectoryText_label = ctk.CTkLabel(master=Frame, text="Ingest Backtest Directory:")
         IngestBacktestDirectoryText_label.place(x=DirectoryLabelText_x, y=135)
-
-        
-
-          
-    # Define Widgets for Ingest Tab
-    def IngestWidgets(self, IngestTrain_frame, IngestBacktest_frame):
-        global IngestTrainingDirectory
-        global IngestBacktestDirectory
-
-        IngestTrainWidgets = IngestSection(IngestTrain_frame, "Train", IngestTrainingDirectory)
-        IngestBacktestWidgets = IngestSection(IngestBacktest_frame, "Backtest", IngestBacktestDirectory)
-
-    # Define Widgets for Models Tab
-    def ModelsWidgets(self, master, Strategies_frame, Features_frame, Labels_frame, Train_frame, Backtest_frame, Evaluate_frame, Verify_frame, Promote_frame):
-        global StrategiesDirectory
-        global FeaturesDirectory
-        global LabelsDirectory
-        global TrainDirectory
-        global BacktestDirectory
-        global EvaluateDirectory
-        global VerifyDirectory
-        global PromoteDirectory
-
-        StrategiesWidgets = ModelSectionStrategy(Strategies_frame, master, StrategiesDirectory)
-
-        FeaturesWidgets = ModelSectionData(Features_frame, master, "Features", FeaturesDirectory)
-        LabelsWidgets = ModelSectionData(Labels_frame, master, "Labels", LabelsDirectory)
-
-        TrainWidgets = ModelSectionCandidate(Train_frame, master, "Train", TrainDirectory)
-        BacktestWidgets = ModelSectionCandidate(Backtest_frame, master, "Backtest", BacktestDirectory)
-        EvaluateWidgets = ModelSectionCandidate(Evaluate_frame, master, "Evaluate", EvaluateDirectory)
-        VerifyWidgets = ModelSectionCandidate(Verify_frame, master, "Verify", VerifyDirectory)
-        PromoteWidgets = ModelSectionCandidate(Promote_frame, master, "Promote", PromoteDirectory)
-
-    
-    # Define Widgets for Analysis Tab
-    def AnalysisWidgets(self, Analysis_frame):
-        pass
-
 
 #------------------------------------------------------------------------------
 # Class to Populate Widgets given a Frame for Ingesting Data
@@ -786,7 +834,6 @@ class ModelSectionStrategy():
         RefreshStrategyIDsListbox_button.place(x=260, y=55)
         RefreshStrategyIDsListbox_button.configure(width=70, height=25)
 
-
 #------------------------------------------------------------------------------
 # Class to Populate Widgets given a Frame for Models
 class ModelSectionData():
@@ -939,7 +986,6 @@ class ModelSectionData():
         # Update Listbox with files from Directory
         UpdateFileListbox(ModelElementData_listbox, ModelElementDirectory, ".parquet")
         
-
 #------------------------------------------------------------------------------
 # Class to Populate Widgets given a Frame for Models
 class ModelSectionCandidate():
@@ -1065,6 +1111,37 @@ class ModelSectionCandidate():
         CandidateCommand_button = ctk.CTkButton(master=Frame, text=ModelDataType + " this Candidate Model", command=CandidateCommandAck)
         CandidateCommand_button.place(x=80, y=90)
         CandidateCommand_button.configure(width=150, height=25)
+
+#------------------------------------------------------------------------------
+# Class to Populate Widgets given a Frame for Models
+class AnalysisSectionIngest():
+    def __init__(self, Frame, master, AnalysisDataType, Directory):
+        super().__init__()
+        # pd.read_parquet('example_fp.parquet', engine='fastparquet')
+
+        # MES Listbox Text
+        MES_listbox_label = ctk.CTkLabel(master=Frame, text="MES " + AnalysisDataType + " Data")
+        MES_listbox_label.place(x=45, y=110)
+        MES_listbox_label.configure(font=("Calibri", 18))
+
+        # MNQ Listbox Text
+        MNQ_listbox_label = ctk.CTkLabel(master=Frame, text="MNQ " + AnalysisDataType + " Data")
+        MNQ_listbox_label.place(x=350, y=110)
+        MNQ_listbox_label.configure(font=("Calibri", 18))
+
+
+        # Files Listbox
+        MES_listbox = tk.Listbox(master=Frame, width = 40, height = 15)
+        MES_listbox.place(x=75, y=400)
+        MES_listbox.configure(font=("Calibri", 18))
+
+        MNQ_listbox = tk.Listbox(master=Frame, width = 40, height = 15)
+        MNQ_listbox.place(x=600, y=400)
+        MNQ_listbox.configure(font=("Calibri", 18))
+
+        # Update Listbox with files from Directory
+        UpdateFileListbox(MES_listbox, Directory + "/MES/1m", ".parquet")
+        UpdateFileListbox(MNQ_listbox, Directory + "/MNQ/1m", ".parquet")
 
 
 #------------------------------------------------------------------------------
