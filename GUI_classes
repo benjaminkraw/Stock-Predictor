@@ -23,6 +23,7 @@ from os.path import isfile, join
 import pandas as pd                         # Used as data analysis
 
 from matplotlib.figure import Figure        # Data graphing
+import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)
 
 #------------------------------------------------------------------------------
@@ -116,6 +117,13 @@ def ConvertNumtoMonth(MonthNumber):
     elif MonthNumber == 12:
         return "December"
     
+# Given a Directory and FileType, return Files
+def GetFiles(Directory, FileType):
+    # Query all files stored in Directory with specific file type
+    Files = [f for f in listdir(Directory) if f.endswith(FileType)]
+
+    return Files
+
 #------------------------------------------------------------------------------
 # Given a Listbox and Directory, Update Listbox 
 def UpdateFileListbox(Listbox, Directory, FileType):
@@ -123,7 +131,7 @@ def UpdateFileListbox(Listbox, Directory, FileType):
     Listbox.delete(0, tk.END)
 
     # Query all files stored in Directory with specific file type
-    Files = [f for f in listdir(Directory) if f.endswith(FileType)]
+    Files = GetFiles(Directory, FileType)
     
     # Insert each File into Listbox
     for File in Files:
@@ -137,7 +145,7 @@ def UpdateFileCombobox(Combobox, Directory, FileType):
     Files_string=[]
 
     # Query all files stored in Directory with specific file type
-    Files = [f for f in listdir(Directory) if f.endswith(FileType)]
+    Files = GetFiles(Directory, FileType)
     
     # Insert each File into String
     for File in Files:
@@ -1117,31 +1125,80 @@ class ModelSectionCandidate():
 class AnalysisSectionIngest():
     def __init__(self, Frame, master, AnalysisDataType, Directory):
         super().__init__()
-        # pd.read_parquet('example_fp.parquet', engine='fastparquet')
+        # Stock Combobox Text
+        Stock_combobox_label = ctk.CTkLabel(master=Frame, text="Select Stock: ")
+        Stock_combobox_label.place(x=20, y=50)
+        Stock_combobox_label.configure(font=("Calibri", 15, "italic"))
 
-        # MES Listbox Text
-        MES_listbox_label = ctk.CTkLabel(master=Frame, text="MES " + AnalysisDataType + " Data")
-        MES_listbox_label.place(x=45, y=110)
-        MES_listbox_label.configure(font=("Calibri", 18))
+        # File Combobox Text
+        File_combobox_label = ctk.CTkLabel(master=Frame, text="Select " + AnalysisDataType + " Data File:")
+        File_combobox_label.place(x=20, y=80)
+        File_combobox_label.configure(font=("Calibri", 15, "italic"))
 
-        # MNQ Listbox Text
-        MNQ_listbox_label = ctk.CTkLabel(master=Frame, text="MNQ " + AnalysisDataType + " Data")
-        MNQ_listbox_label.place(x=350, y=110)
-        MNQ_listbox_label.configure(font=("Calibri", 18))
+        # Once Combobox element is selected, Update Combobox
+        def IngestDataFileSet(choice):
+            if (choice == "MES"):
+                UpdateFileCombobox(IngestDataFile_combobox, Directory + "/MES/1m", ".parquet")
+                IngestDataFile_combobox.set("Select MES File")
+            elif (choice == "MNQ"):
+                UpdateFileCombobox(IngestDataFile_combobox, Directory + "/MNQ/1m", ".parquet")
+                IngestDataFile_combobox.set("Select MNQ File")
+            
+            print("Stock Selected: ", choice)
 
+        IngestDataStock_combobox_var = ctk.StringVar(value="MES")
+        IngestDatatock_combobox = ctk.CTkComboBox(Frame, values=["MES", "MNQ"], command=IngestDataFileSet, variable=IngestDataStock_combobox_var)
+        IngestDatatock_combobox.place(x=200, y=50)
+        IngestDatatock_combobox.configure(width=100)
 
-        # Files Listbox
-        MES_listbox = tk.Listbox(master=Frame, width = 40, height = 15)
-        MES_listbox.place(x=75, y=400)
-        MES_listbox.configure(font=("Calibri", 18))
-
-        MNQ_listbox = tk.Listbox(master=Frame, width = 40, height = 15)
-        MNQ_listbox.place(x=600, y=400)
-        MNQ_listbox.configure(font=("Calibri", 18))
 
         # Update Listbox with files from Directory
-        UpdateFileListbox(MES_listbox, Directory + "/MES/1m", ".parquet")
-        UpdateFileListbox(MNQ_listbox, Directory + "/MNQ/1m", ".parquet")
+        Files = GetFiles(Directory + "/MES/1m", ".parquet")
+
+        # Once Combobox element is selected, Update read file
+        def IngestDataFileSet(choice):
+            # Data = pd.read_parquet(Directory + "/MES/1m/" + choice, engine='fastparquet')
+            # print(Data)
+
+
+            t = np.arange(0, 3, .01)
+            ax = fig.add_subplot()
+            line, = ax.plot(t, 2 * np.sin(2 * np.pi * t))
+            ax.set_xlabel("time [s]")
+            ax.set_ylabel("f(t)")
+            canvas.draw()
+
+
+
+            # plt.figure()
+            # Data.plot()
+
+            # from fastparquet import ParquetFile
+            # pf = ParquetFile('myfile.parq')
+            # df = pf.to_pandas()
+            # df2 = pf.to_pandas(['col1', 'col2'], categories=['col1'])
+
+            print(AnalysisDataType + "File Selected: ", choice)
+
+        IngestDataFile_combobox_var = ctk.StringVar(value=str(Files[0]))
+        IngestDataFile_combobox = ctk.CTkComboBox(Frame, command=IngestDataFileSet, variable=IngestDataFile_combobox_var)
+        IngestDataFile_combobox.place(x=200, y=80)
+        IngestDataFile_combobox.configure(width=320)
+
+
+        # Update Combobox with Strategies
+        UpdateFileCombobox(IngestDataFile_combobox, Directory + "/MES/1m", ".parquet")
+
+        # Generate Figure and Configure
+        fig = Figure(figsize=(5, 4), dpi=100)
+        ax = fig.add_subplot()
+        ax.set_xlabel("time [s]")
+        ax.set_ylabel("f(t)")
+        canvas = FigureCanvasTkAgg(fig, master=Frame)
+        canvas.get_tk_widget().place(x=40, y=250)
+        canvas.get_tk_widget().configure(width=1000, height=900)
+        canvas.draw()
+
 
 
 #------------------------------------------------------------------------------
