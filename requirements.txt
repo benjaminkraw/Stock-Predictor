@@ -32,6 +32,9 @@ customtkinter                   # GUI 2.0
 tkcalendar                      # GUI Calendar Widget
 
 subprocess                      # Allows for running Powershell commands from GUI
+threading                       # Allows for threading of subprocess
 screeninfo                      # Allows for querying about connected monitors
+
+fastparquet                     # Ingest Parquet Data
 
 os                              # Allows for navigating through files local to PC
